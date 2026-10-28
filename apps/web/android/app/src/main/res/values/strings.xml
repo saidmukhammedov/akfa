@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ustaxona</string>
+    <string name="title_activity_main">Ustaxona</string>
+    <string name="package_name">com.akfa.ustaxona</string>
+    <string name="custom_url_scheme">com.akfa.ustaxona</string>
+</resources>

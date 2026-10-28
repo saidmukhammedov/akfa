@@ -8,6 +8,8 @@ build
 .output
 .vite
 *.tsbuildinfo
+*.apk
+.gradle
 
 # Environment variables
 .env
