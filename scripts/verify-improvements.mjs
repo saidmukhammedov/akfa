@@ -2,7 +2,7 @@ import { chromium } from 'file:///C:/Users/hp/.gemini/antigravity/scratch/UniTra
 import { spawn, execSync } from 'child_process';
 import path from 'path';
 
-const VITE_PORT = 4175;
+const VITE_PORT = 4180;
 const LOCAL_URL = `http://localhost:${VITE_PORT}`;
 const ARTIFACTS_DIR = 'C:/Users/hp/.gemini/antigravity/brain/8e4ae944-ffd0-41c7-b476-39b058d75850';
 
@@ -169,7 +169,7 @@ async function setupMockRoutes(page) {
     const url = route.request().url();
     const method = route.request().method();
 
-    if (url.includes('/auth/session') || url.includes('/auth/status')) {
+    if (url.includes('/auth/session') || url.includes('/auth/status') || url.includes('/auth/profile')) {
       return route.fulfill({
         status: 200,
         contentType: 'application/json',

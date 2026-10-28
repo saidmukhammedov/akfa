@@ -262,27 +262,59 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
               Hozircha kiritilgan to'lovlar mavjud emas.
             </p>
           ) : (
-            <div className="divide-y divide-white/60 dark:divide-slate-800/80">
+            <div className="space-y-2.5">
               {payments.slice(0, 4).map((payment) => (
-                <div key={payment.id} className="py-3.5 flex items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
-                      {payment.workerName || 'Ishchi'}
-                    </p>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5 flex-wrap">
-                      <span className="whitespace-nowrap">{formatDate(payment.paymentDate, 'short')}</span>
-                      <span>&bull;</span>
-                      <span className="whitespace-nowrap">{t.paymentMethods[payment.paymentMethod]}</span>
-                      {payment.notes && (
-                        <>
-                          <span>&bull;</span>
-                          <span className="truncate italic max-w-[120px] sm:max-w-xs">"{payment.notes}"</span>
-                        </>
-                      )}
+                <div
+                  key={payment.id}
+                  className="p-3 sm:p-3.5 rounded-2xl glass-slot border border-white/70 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-all"
+                >
+                  {/* Top line on mobile, Left side on desktop */}
+                  <div className="flex items-center justify-between sm:justify-start gap-2.5 min-w-0 flex-1">
+                    <div className="min-w-0">
+                      <p className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                        {payment.workerName || 'Ishchi'}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold sm:hidden truncate">
+                        {t.paymentMethods[payment.paymentMethod]}
+                      </p>
+                      <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                        <span className="whitespace-nowrap">{formatDate(payment.paymentDate, 'short')}</span>
+                        <span>&bull;</span>
+                        <span className="whitespace-nowrap">{t.paymentMethods[payment.paymentMethod]}</span>
+                        {payment.notes && (
+                          <>
+                            <span>&bull;</span>
+                            <span className="truncate italic max-w-xs text-slate-600 dark:text-slate-300">
+                              "{payment.notes}"
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Mobile amount badge */}
+                    <div className="sm:hidden text-right shrink-0">
+                      <span className="text-xs font-black text-akfa-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/80 px-3 py-1.5 rounded-full border border-blue-200/80 dark:border-blue-800/80 shadow-clay-pill whitespace-nowrap inline-block">
+                        {formatCurrency(payment.amount)}
+                      </span>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-xs sm:text-sm font-black text-akfa-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/80 px-3 sm:px-3.5 py-1.5 rounded-full border border-blue-200/80 dark:border-blue-800/80 shadow-clay-pill whitespace-nowrap inline-block">
+
+                  {/* Mobile-only bottom row for Date and Notes */}
+                  <div className="flex sm:hidden items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold pt-1.5 border-t border-white/50 dark:border-slate-800/60 gap-2">
+                    <span className="whitespace-nowrap text-[11px]">
+                      {formatDate(payment.paymentDate, 'short')}
+                    </span>
+                    {payment.notes && (
+                      <span className="truncate italic text-[11px] max-w-[170px] text-slate-600 dark:text-slate-300">
+                        "{payment.notes}"
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Desktop amount badge */}
+                  <div className="hidden sm:block text-right shrink-0">
+                    <span className="text-sm font-black text-akfa-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/80 px-3.5 py-1.5 rounded-full border border-blue-200/80 dark:border-blue-800/80 shadow-clay-pill whitespace-nowrap inline-block">
                       {formatCurrency(payment.amount)}
                     </span>
                   </div>

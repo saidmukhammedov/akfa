@@ -79,7 +79,7 @@ export const uz = {
     tableDaysWorked: 'Ishlangan kun',
     tableAccrued: 'Hisoblangan ish haqi',
     tablePaid: "To'langan",
-    tableBalance: 'Ustaxonaning qarzi',
+    tableBalance: 'Ustaxonadan qarzi',
     recordPaymentBtn: "To'lov berish",
     newPaymentTitle: "Ish haqidan to'lov berish",
     amountLabel: "To'lov summasi (so'm)",

@@ -17,6 +17,7 @@ import {
   Landmark,
   ArrowUpRight,
   AlertCircle,
+  Calendar,
 } from 'lucide-react';
 
 export const MoliyaView: React.FC = () => {
@@ -215,9 +216,9 @@ export const MoliyaView: React.FC = () => {
                 </div>
 
                 {/* 2x2 Financial Metrics Grid */}
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5 truncate">
+                <div className="grid grid-cols-2 gap-2.5 text-xs">
+                  <div className="p-2.5 sm:p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
                       {t.moliya.tableDaysWorked}
                     </span>
                     <span className="font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
@@ -225,8 +226,8 @@ export const MoliyaView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5 truncate">
+                  <div className="p-2.5 sm:p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
                       {t.moliya.tableAccrued}
                     </span>
                     <span className="font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
@@ -234,8 +235,8 @@ export const MoliyaView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5 truncate">
+                  <div className="p-2.5 sm:p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
                       {t.moliya.tablePaid}
                     </span>
                     <span className="font-black text-slate-700 dark:text-slate-300 text-sm whitespace-nowrap">
@@ -243,8 +244,8 @@ export const MoliyaView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5">
+                  <div className="p-2.5 sm:p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
                       {t.moliya.tableBalance}
                     </span>
                     {isOverpaid ? (
@@ -346,11 +347,11 @@ export const MoliyaView: React.FC = () => {
       {/* Recent Payments Feed */}
       <Card title={t.moliya.paymentHistory} subtitle="Kiritilgan to'lovlar jurnali" padding="none">
         {payments.length === 0 ? (
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold py-6 text-center">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold py-8 text-center">
             Hozircha kiritilgan to'lovlar mavjud emas.
           </p>
         ) : (
-          <div className="divide-y divide-white/60 dark:divide-slate-800/80">
+          <div className="p-3.5 sm:p-5 space-y-2.5">
             {payments.map((p) => {
               const methodIcon =
                 p.paymentMethod === 'CARD' ? (
@@ -362,28 +363,64 @@ export const MoliyaView: React.FC = () => {
                 );
 
               return (
-                <div key={p.id} className="p-4 sm:p-5 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="clay-avatar w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      {methodIcon}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h5 className="text-sm font-black text-slate-900 dark:text-white truncate">{p.workerName}</h5>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5 flex-wrap">
-                        <span className="whitespace-nowrap">{formatDate(p.paymentDate, 'medium')}</span>
-                        <span>&bull;</span>
-                        <span className="whitespace-nowrap">{t.paymentMethods[p.paymentMethod]}</span>
-                        {p.notes && (
-                          <>
-                            <span>&bull;</span>
-                            <span className="italic truncate max-w-[120px] sm:max-w-xs">"{p.notes}"</span>
-                          </>
-                        )}
+                <div
+                  key={p.id}
+                  className="p-3.5 sm:p-4 rounded-2xl glass-slot border border-white/70 dark:border-slate-800 hover:border-white dark:hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                >
+                  {/* Top row on mobile / Left column on desktop */}
+                  <div className="flex items-center justify-between sm:justify-start gap-3 min-w-0 flex-1">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="clay-avatar w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center shrink-0">
+                        {methodIcon}
+                      </div>
+                      <div className="min-w-0">
+                        <h5 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+                          {p.workerName}
+                        </h5>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                          <span className="whitespace-nowrap font-bold text-slate-700 dark:text-slate-300">
+                            {t.paymentMethods[p.paymentMethod]}
+                          </span>
+                          <span className="hidden sm:inline">&bull;</span>
+                          <span className="hidden sm:inline whitespace-nowrap">{formatDate(p.paymentDate, 'medium')}</span>
+                          {p.notes && (
+                            <>
+                              <span className="hidden sm:inline">&bull;</span>
+                              <span className="hidden sm:inline italic truncate max-w-xs text-slate-600 dark:text-slate-300">
+                                "{p.notes}"
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
+
+                    {/* Amount badge on Mobile (positioned on the right of the header row) */}
+                    <div className="sm:hidden text-right shrink-0">
+                      <span className="text-xs font-black text-akfa-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/80 px-3.5 py-1.5 rounded-full border border-blue-200/80 dark:border-blue-800/80 shadow-clay-pill whitespace-nowrap inline-block">
+                        {formatCurrency(p.amount)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-xs sm:text-sm font-black text-akfa-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/80 px-3 sm:px-3.5 py-1.5 rounded-full border border-blue-200/80 dark:border-blue-800/80 shadow-clay-pill whitespace-nowrap inline-block">
+
+                  {/* Mobile-only bottom row: Full width for Date and Note so they never wrap awkwardly */}
+                  <div className="flex sm:hidden items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold pt-2 border-t border-white/50 dark:border-slate-800/60 gap-2">
+                    <span className="whitespace-nowrap flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                      {formatDate(p.paymentDate, 'medium')}
+                    </span>
+                    {p.notes ? (
+                      <span className="italic truncate max-w-[170px] text-slate-600 dark:text-slate-300 text-[11px]">
+                        "{p.notes}"
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 dark:text-slate-600 text-[10px] font-medium">To'lov saqlandi</span>
+                    )}
+                  </div>
+
+                  {/* Desktop amount badge */}
+                  <div className="hidden sm:block text-right shrink-0">
+                    <span className="text-sm font-black text-akfa-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/80 px-4 py-2 rounded-full border border-blue-200/80 dark:border-blue-800/80 shadow-clay-pill whitespace-nowrap inline-block">
                       {formatCurrency(p.amount)}
                     </span>
                   </div>
