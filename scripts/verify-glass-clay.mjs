@@ -1,5 +1,5 @@
 import { chromium } from 'file:///C:/Users/hp/.gemini/antigravity/scratch/UniTrack/node_modules/playwright/index.mjs';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import path from 'path';
 
 const VITE_PORT = 4173;
@@ -98,10 +98,15 @@ async function main() {
       await browser.close();
     }
   } finally {
-    if (previewProcess) {
-      previewProcess.kill();
+    if (previewProcess && previewProcess.pid) {
+      try {
+        execSync(`taskkill /pid ${previewProcess.pid} /T /F`, { stdio: 'ignore' });
+      } catch {
+        previewProcess.kill();
+      }
     }
   }
+  process.exit(0);
 }
 
 main().catch((err) => {

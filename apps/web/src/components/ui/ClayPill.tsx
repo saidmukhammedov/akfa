@@ -18,20 +18,20 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
   const isPresent = status === 'PRESENT';
 
   return (
-    <div className="inline-flex items-center p-1 bg-slate-200/50 backdrop-blur-md rounded-full border border-white/70 shadow-inner select-none">
+    <div className="inline-flex items-center p-1.5 glass-slot rounded-full select-none">
       <button
         type="button"
         disabled={disabled}
         onClick={() => {
           if (!isPresent) onChange('PRESENT');
         }}
-        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-100 active:scale-95 cursor-pointer ${
+        className={`clay-interactive flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-black transition-all duration-150 cursor-pointer ${
           isPresent
-            ? 'bg-gradient-to-b from-present-500 to-present-600 text-white shadow-clay-btn-success border border-present-400/50'
-            : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+            ? 'bg-gradient-to-b from-present-400 via-present-500 to-present-600 text-white shadow-clay-btn-success border border-present-300/60'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-white/40 font-bold'
         }`}
       >
-        <Check className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isPresent ? 'stroke-[2.5]' : 'stroke-2'}`} />
+        <Check className={`w-4 h-4 ${isPresent ? 'stroke-[3] drop-shadow-sm' : 'stroke-2'}`} />
         <span>{t.davomat.present}</span>
       </button>
 
@@ -41,13 +41,13 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
         onClick={() => {
           if (isPresent) onChange('ABSENT');
         }}
-        className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-100 active:scale-95 cursor-pointer ${
+        className={`clay-interactive flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-black transition-all duration-150 cursor-pointer ${
           !isPresent
-            ? 'bg-gradient-to-b from-absent-500 to-absent-600 text-white shadow-clay-btn-danger border border-absent-400/50'
-            : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+            ? 'bg-gradient-to-b from-absent-400 via-absent-500 to-absent-600 text-white shadow-clay-btn-danger border border-absent-300/60'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-white/40 font-bold'
         }`}
       >
-        <X className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${!isPresent ? 'stroke-[2.5]' : 'stroke-2'}`} />
+        <X className={`w-4 h-4 ${!isPresent ? 'stroke-[3] drop-shadow-sm' : 'stroke-2'}`} />
         <span>{t.davomat.absent}</span>
       </button>
     </div>

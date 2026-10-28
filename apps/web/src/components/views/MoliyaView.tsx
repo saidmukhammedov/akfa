@@ -89,73 +89,76 @@ export const MoliyaView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-7 animate-in fade-in duration-200">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
         <div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-workshop-text tracking-tight">{t.moliya.title}</h2>
-          <p className="text-xs sm:text-sm text-workshop-muted mt-0.5">{t.moliya.subtitle}</p>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{t.moliya.title}</h2>
+          <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">{t.moliya.subtitle}</p>
         </div>
         <Button
           variant="primary"
           size="md"
           onClick={() => openPaymentModal()}
-          className="self-start sm:self-auto shadow-clay-btn-primary rounded-2xl"
+          className="self-start sm:self-auto h-12 px-6 rounded-2xl shadow-clay-btn-primary"
         >
-          <PlusCircle className="w-4 h-4" />
-          <span>{t.moliya.recordPaymentBtn}</span>
+          <PlusCircle className="w-5 h-5 stroke-[2.4]" />
+          <span className="font-extrabold">{t.moliya.recordPaymentBtn}</span>
         </Button>
       </div>
 
-      {/* Financial Overview Cards (Frosted Glass Clay) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
-          <div className="flex items-center justify-between text-workshop-muted mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+      {/* Financial Overview Cards (3 Frosted Glass Pods) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="glass-clay-card p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               {t.dashboard.monthlyAccrued}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50/80 border border-emerald-200/60 shadow-clay-sm flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200/90 shadow-clay-pill flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-emerald-600 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-workshop-text truncate">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 truncate tracking-tight">
             {formatCurrency(financeOverview.totalAccruedSalaries)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-1.5 font-medium">
+          <p className="text-xs text-slate-500 font-semibold mt-2.5">
             Davomat va kunlik stavkalar asosida
           </p>
         </div>
 
-        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
-          <div className="flex items-center justify-between text-workshop-muted mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="glass-clay-card p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               {t.dashboard.monthlyPaid}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-sky-50/80 border border-sky-200/60 shadow-clay-sm flex items-center justify-center">
-              <Receipt className="w-4 h-4 text-blue-600" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200/90 shadow-clay-pill flex items-center justify-center">
+              <Receipt className="w-5 h-5 text-akfa-600 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-workshop-text truncate">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 truncate tracking-tight">
             {formatCurrency(financeOverview.totalPaymentsDistributed)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-1.5 font-medium">
+          <p className="text-xs text-slate-500 font-semibold mt-2.5">
             Tarqatilgan ish haqi va avanslar
           </p>
         </div>
 
-        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
-          <div className="flex items-center justify-between text-workshop-muted mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        <div className="glass-clay-card p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               {t.dashboard.outstandingBalance}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50/80 border border-amber-200/60 shadow-clay-sm flex items-center justify-center">
-              <Wallet className="w-4 h-4 text-amber-600" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200/90 shadow-clay-pill flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-amber-600 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-amber-700 truncate">
+          <div className="text-2xl sm:text-3xl font-black text-amber-800 truncate tracking-tight">
             {formatCurrency(financeOverview.totalPendingBalance)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-1.5 font-medium">
+          <p className="text-xs text-slate-500 font-semibold mt-2.5">
             Ishchilar oldidagi jami to'lanishi kerak bo'lgan qoldiq
           </p>
         </div>
@@ -169,68 +172,68 @@ export const MoliyaView: React.FC = () => {
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-200/40 backdrop-blur-md text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-white/80">
+            <thead className="bg-slate-200/40 backdrop-blur-md text-xs font-black text-slate-600 uppercase tracking-wider border-b border-white/80">
               <tr>
-                <th className="py-3 px-4">{t.moliya.tableWorker}</th>
-                <th className="py-3 px-4">{t.moliya.tableDailyRate}</th>
-                <th className="py-3 px-4">{t.moliya.tableDaysWorked}</th>
-                <th className="py-3 px-4">{t.moliya.tableAccrued}</th>
-                <th className="py-3 px-4">{t.moliya.tablePaid}</th>
-                <th className="py-3 px-4 text-right">{t.moliya.tableBalance}</th>
-                <th className="py-3 px-4 text-right">{t.common.actions}</th>
+                <th className="py-3.5 px-5">{t.moliya.tableWorker}</th>
+                <th className="py-3.5 px-5">{t.moliya.tableDailyRate}</th>
+                <th className="py-3.5 px-5">{t.moliya.tableDaysWorked}</th>
+                <th className="py-3.5 px-5">{t.moliya.tableAccrued}</th>
+                <th className="py-3.5 px-5">{t.moliya.tablePaid}</th>
+                <th className="py-3.5 px-5 text-right">{t.moliya.tableBalance}</th>
+                <th className="py-3.5 px-5 text-right">{t.common.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/40">
+            <tbody className="divide-y divide-white/60">
               {financeSummaries.map((summary) => {
                 const isOverpaid = summary.balanceOwed < 0;
                 return (
                   <tr key={summary.workerId} className="hover:bg-white/50 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-workshop-text">{summary.name}</span>
+                    <td className="py-4 px-5">
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-black text-slate-900">{summary.name}</span>
                         <Badge role={summary.role} size="sm" />
                         {summary.status === 'ARCHIVED' && (
-                          <span className="text-[10px] font-bold text-slate-500 bg-slate-200/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-slate-300/60 shadow-clay-sm">
+                          <span className="text-[10px] font-black text-slate-500 bg-slate-200/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-slate-300/60 shadow-clay-pill">
                             Arxiv
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600 font-medium">
+                    <td className="py-4 px-5 text-slate-600 font-bold">
                       {formatCurrency(summary.currentDailyRate)}
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-800">
+                    <td className="py-4 px-5 font-black text-slate-900">
                       {summary.daysWorked} kun
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-workshop-text">
+                    <td className="py-4 px-5 font-black text-slate-900">
                       {formatCurrency(summary.totalAccruedSalary)}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600 font-medium">
+                    <td className="py-4 px-5 text-slate-600 font-bold">
                       {formatCurrency(summary.totalPaid)}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-4 px-5 text-right">
                       {isOverpaid ? (
-                        <span className="text-xs font-bold text-blue-700 bg-blue-50/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-blue-200/80 shadow-clay-sm">
+                        <span className="text-xs font-black text-blue-800 bg-gradient-to-b from-blue-50 to-blue-100 px-3 py-1 rounded-full border border-blue-200/90 shadow-clay-pill">
                           {formatCurrency(Math.abs(summary.balanceOwed))} avans
                         </span>
                       ) : summary.balanceOwed === 0 ? (
-                        <span className="text-xs font-semibold text-slate-500">
+                        <span className="text-xs font-bold text-slate-500">
                           0 so'm
                         </span>
                       ) : (
-                        <span className="font-extrabold text-amber-700">
+                        <span className="font-black text-amber-800">
                           {formatCurrency(summary.balanceOwed)}
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-4 px-5 text-right">
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => openPaymentModal(summary.workerId)}
-                        className="text-xs font-bold rounded-xl"
+                        className="text-xs font-black rounded-xl"
                       >
-                        <ArrowUpRight className="w-3.5 h-3.5" />
+                        <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                         <span>{t.moliya.recordPaymentBtn}</span>
                       </Button>
                     </td>
@@ -244,26 +247,26 @@ export const MoliyaView: React.FC = () => {
 
       {/* Recent Payments Feed */}
       <Card title={t.moliya.paymentHistory} subtitle="Kiritilgan to'lovlar jurnali" padding="none">
-        <div className="divide-y divide-slate-200/40">
+        <div className="divide-y divide-white/60">
           {payments.map((p) => {
             const methodIcon =
               p.paymentMethod === 'CARD' ? (
-                <CreditCard className="w-4 h-4 text-blue-600" />
+                <CreditCard className="w-5 h-5 text-blue-600 stroke-[2.2]" />
               ) : p.paymentMethod === 'BANK_TRANSFER' ? (
-                <Landmark className="w-4 h-4 text-indigo-600" />
+                <Landmark className="w-5 h-5 text-indigo-600 stroke-[2.2]" />
               ) : (
-                <Banknote className="w-4 h-4 text-emerald-600" />
+                <Banknote className="w-5 h-5 text-emerald-600 stroke-[2.2]" />
               );
 
             return (
-              <div key={p.id} className="p-4 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-white/80 border border-white/90 shadow-clay-sm flex items-center justify-center flex-shrink-0">
+              <div key={p.id} className="p-4 sm:p-5 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="clay-avatar w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0">
                     {methodIcon}
                   </div>
                   <div>
-                    <h5 className="text-sm font-bold text-workshop-text">{p.workerName}</h5>
-                    <div className="flex items-center gap-2 text-xs text-workshop-muted font-medium mt-0.5">
+                    <h5 className="text-sm font-black text-slate-900">{p.workerName}</h5>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold mt-0.5">
                       <span>{formatDate(p.paymentDate, 'medium')}</span>
                       <span>&bull;</span>
                       <span>{t.paymentMethods[p.paymentMethod]}</span>
@@ -277,7 +280,7 @@ export const MoliyaView: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-extrabold text-akfa-700">
+                  <span className="text-sm font-black text-akfa-700 bg-blue-50/80 px-3.5 py-1.5 rounded-full border border-blue-200/70 shadow-clay-pill">
                     {formatCurrency(p.amount)}
                   </span>
                 </div>
@@ -293,17 +296,17 @@ export const MoliyaView: React.FC = () => {
         onClose={() => setIsPaymentModalOpen(false)}
         title={t.moliya.newPaymentTitle}
       >
-        <form onSubmit={handleRecordPayment} className="space-y-4">
+        <form onSubmit={handleRecordPayment} className="space-y-5">
           {formError && (
-            <div className="p-3.5 rounded-2xl bg-absent-50/90 backdrop-blur-md border border-absent-200 text-xs sm:text-sm text-absent-800 font-semibold flex items-start gap-2 animate-in fade-in shadow-clay-sm">
-              <AlertCircle className="w-4 h-4 text-absent-600 flex-shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-rose-50/90 backdrop-blur-md border border-rose-200 text-xs sm:text-sm text-rose-800 font-bold flex items-start gap-2.5 animate-in fade-in shadow-clay-card">
+              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
               <span className="flex-1">{formError}</span>
             </div>
           )}
 
           {/* Worker Select */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
               {t.moliya.tableWorker}
             </label>
             <select
@@ -316,7 +319,7 @@ export const MoliyaView: React.FC = () => {
                   setAmount(String(s.balanceOwed));
                 }
               }}
-              className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-white/80 rounded-2xl text-sm font-medium text-workshop-text focus:outline-none focus:ring-4 focus:ring-akfa-500/15 focus:border-akfa-500 focus:bg-white/95 transition-all shadow-inner"
+              className="w-full px-4 py-3 bg-white/60 backdrop-blur-xl border border-white/85 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 focus:bg-white/95 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)]"
             >
               {workers.map((w) => {
                 const sum = financeSummaries.find((s) => s.workerId === w.id);
@@ -339,13 +342,13 @@ export const MoliyaView: React.FC = () => {
               onChange={(e) => setAmount(e.target.value)}
               required
             />
-            <div className="flex flex-wrap gap-1.5 mt-2.5">
+            <div className="flex flex-wrap gap-2 mt-3">
               {[200000, 500000, 1000000, 1500000].map((quick) => (
                 <button
                   key={quick}
                   type="button"
                   onClick={() => setQuickAmount(quick)}
-                  className="px-3 py-1.5 text-xs bg-slate-200/50 backdrop-blur-md hover:bg-white text-slate-700 rounded-full font-bold border border-white/70 shadow-clay-sm transition-all active:scale-95 cursor-pointer"
+                  className="clay-interactive px-3.5 py-1.5 text-xs bg-gradient-to-b from-white to-slate-100 text-slate-800 rounded-full font-black border border-white shadow-clay-pill transition-all cursor-pointer"
                 >
                   {formatCurrency(quick)}
                 </button>
@@ -355,19 +358,19 @@ export const MoliyaView: React.FC = () => {
 
           {/* Payment Method Segmented Switcher */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
               {t.moliya.methodLabel}
             </label>
-            <div className="p-1 bg-slate-200/50 backdrop-blur-md rounded-2xl border border-white/70 shadow-inner grid grid-cols-3 gap-1.5">
+            <div className="p-1.5 glass-slot rounded-2xl grid grid-cols-3 gap-2 shadow-glass-slot">
               {(['CASH', 'CARD', 'BANK_TRANSFER'] as PaymentMethod[]).map((method) => (
                 <button
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer ${
+                  className={`clay-interactive py-2.5 px-3 text-xs font-black rounded-xl transition-all cursor-pointer ${
                     paymentMethod === method
-                      ? 'bg-gradient-to-b from-akfa-500 to-akfa-600 text-white shadow-clay-btn-primary border border-akfa-400/40'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                      ? 'bg-gradient-to-b from-akfa-500 to-akfa-600 text-white shadow-clay-btn-primary border border-akfa-400/50'
+                      : 'text-slate-600 hover:text-slate-900 font-bold'
                   }`}
                 >
                   {t.paymentMethods[method]}
@@ -394,7 +397,7 @@ export const MoliyaView: React.FC = () => {
             onChange={(e) => setNotes(e.target.value)}
           />
 
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-200/50">
+          <div className="flex items-center justify-end gap-3 pt-5 border-t border-white/60">
             <Button
               type="button"
               variant="ghost"

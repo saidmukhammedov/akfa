@@ -16,13 +16,14 @@ export const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center relative overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-300/20 blur-3xl" />
-        <div className="relative z-10 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-3xl bg-white/80 backdrop-blur-xl border border-white/90 shadow-clay-card flex items-center justify-center">
-            <Loader2 className="w-7 h-7 animate-spin text-akfa-600" />
+      <div className="min-h-screen bg-[#eaf1f9] flex items-center justify-center relative overflow-hidden">
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-400/25 blur-3xl" />
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-indigo-400/25 blur-3xl" />
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-[28px] bg-white/75 backdrop-blur-3xl border-2 border-white/90 shadow-clay-card flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-akfa-600 stroke-[2.5]" />
           </div>
-          <span className="text-xs font-bold text-slate-600 tracking-wide">Yuklanmoqda...</span>
+          <span className="text-xs font-black text-slate-700 tracking-wider uppercase">Yuklanmoqda...</span>
         </div>
       </div>
     );

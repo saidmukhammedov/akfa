@@ -4,38 +4,75 @@
 
 @layer base {
   body {
-    @apply bg-slate-100 text-workshop-text font-sans antialiased min-h-screen selection:bg-akfa-100 selection:text-akfa-900;
+    @apply text-workshop-text font-sans antialiased min-h-screen selection:bg-akfa-200 selection:text-akfa-900;
+    /* Rich, vibrant atmospheric background mesh for genuine Glassmorphism refraction */
+    background-color: #eaf1f9;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(199, 210, 254, 0.25) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(186, 230, 253, 0.3) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(209, 250, 229, 0.2) 0px, transparent 50%);
+      radial-gradient(circle at 5% 10%, rgba(147, 197, 253, 0.5) 0px, transparent 40%),
+      radial-gradient(circle at 95% 15%, rgba(199, 210, 254, 0.55) 0px, transparent 42%),
+      radial-gradient(circle at 50% 50%, rgba(167, 243, 208, 0.35) 0px, transparent 45%),
+      radial-gradient(circle at 20% 85%, rgba(224, 231, 255, 0.6) 0px, transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(186, 230, 253, 0.45) 0px, transparent 40%);
     background-attachment: fixed;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
 @layer components {
-  /* Frosted Glass + Clay Surface */
+  /* Ultra-crafted Glassmorphic Frosted Glass Panel */
   .glass-clay-card {
-    @apply bg-white/75 backdrop-blur-xl border border-white/80 rounded-3xl shadow-clay-card transition-all duration-200;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1.5px solid rgba(255, 255, 255, 0.88);
+    box-shadow: 
+      0 20px 40px -10px rgba(15, 23, 42, 0.08),
+      0 8px 16px -6px rgba(15, 23, 42, 0.04),
+      inset 0 2px 2px 0 rgba(255, 255, 255, 1),
+      inset 0 -2px 3px 0 rgba(15, 23, 42, 0.03);
+    border-radius: 28px;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .glass-clay-card:hover {
-    @apply shadow-clay-card-hover border-white/95;
+    background: rgba(255, 255, 255, 0.82);
+    border-color: rgba(255, 255, 255, 1);
+    box-shadow: 
+      0 26px 50px -12px rgba(15, 23, 42, 0.12),
+      0 12px 24px -8px rgba(15, 23, 42, 0.06),
+      inset 0 2px 2px 0 rgba(255, 255, 255, 1),
+      inset 0 -2px 3px 0 rgba(15, 23, 42, 0.04);
   }
 
-  /* Tactile clay surface */
-  .clay-surface {
-    @apply bg-white/80 backdrop-blur-xl border border-white/80 rounded-3xl shadow-clay-card transition-all duration-150;
-  }
-
-  /* Tactile button with depressed feedback */
-  .clay-interactive {
-    @apply transition-all duration-150 active:scale-[0.98] active:translate-y-0.5 select-none;
-  }
-
-  /* Frosted Glass Inset Control Slot */
+  /* Volumetric Clay Pill Slot (Recessed Frosted Groove) */
   .glass-slot {
-    @apply bg-slate-200/50 backdrop-blur-md rounded-full border border-white/60 shadow-inner;
+    background: rgba(226, 232, 240, 0.6);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1.5px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 
+      inset 0 2px 6px 0 rgba(15, 23, 42, 0.12),
+      inset 0 1px 2px 0 rgba(15, 23, 42, 0.08),
+      0 1px 2px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  /* Tactile 3D Clay Button Interactive State */
+  .clay-interactive {
+    transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    user-select: none;
+  }
+
+  .clay-interactive:active {
+    transform: scale(0.96) translateY(2px);
+  }
+
+  /* 3D Ceramic Pebble Avatar */
+  .clay-avatar {
+    background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 
+      0 8px 18px -4px rgba(15, 23, 42, 0.1),
+      inset 0 2px 3px 0 rgba(255, 255, 255, 1),
+      inset 0 -2px 3px 0 rgba(15, 23, 42, 0.1);
   }
 }

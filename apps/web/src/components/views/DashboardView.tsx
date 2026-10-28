@@ -15,6 +15,7 @@ import {
   Clock,
   CalendarCheck,
   CreditCard,
+  ArrowRight,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -39,119 +40,123 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
   const totalWorkers = activeWorkers.length;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-7 animate-in fade-in duration-200">
       {/* Top Greeting & Action bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
         <div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-workshop-text tracking-tight">
-            {t.dashboard.welcome}, {owner?.fullName || ''}
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            {t.dashboard.welcome}, {owner?.fullName || 'Ustaxona Rahbari'}
           </h2>
-          <p className="text-xs sm:text-sm text-workshop-muted mt-0.5">
-            {owner?.workshopName || t.app.title} — {formatDate(selectedDate, 'full')}
+          <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
+            {owner?.workshopName || t.app.title} &bull; {formatDate(selectedDate, 'full')}
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:gap-3.5">
           <Button
             variant="primary"
             onClick={() => onNavigate('davomat')}
-            className="h-11 sm:h-11 px-4 text-xs sm:text-sm font-bold rounded-2xl flex items-center justify-center gap-2 shadow-clay-btn-primary transition-all active:scale-[0.98] w-full sm:w-auto"
+            className="h-12 sm:h-12 px-5 text-xs sm:text-sm font-extrabold rounded-2xl flex items-center justify-center gap-2.5 w-full sm:w-auto"
           >
-            <CalendarCheck className="w-4 h-4 shrink-0 text-white" />
+            <CalendarCheck className="w-4 h-4 shrink-0 text-white stroke-[2.4]" />
             <span className="truncate">{t.dashboard.quickDavomatBtn}</span>
           </Button>
           <Button
             variant="secondary"
             onClick={() => onNavigate('moliya')}
-            className="h-11 sm:h-11 px-4 text-xs sm:text-sm font-bold rounded-2xl flex items-center justify-center gap-2 shadow-clay-card border border-white/90 transition-all active:scale-[0.98] w-full sm:w-auto"
+            className="h-12 sm:h-12 px-5 text-xs sm:text-sm font-extrabold rounded-2xl flex items-center justify-center gap-2.5 w-full sm:w-auto"
           >
-            <CreditCard className="w-4 h-4 shrink-0 text-slate-700" />
+            <CreditCard className="w-4 h-4 shrink-0 text-slate-700 stroke-[2.4]" />
             <span className="truncate">{t.dashboard.quickPaymentBtn}</span>
           </Button>
         </div>
       </div>
 
-      {/* KPI Cards Grid (Frosted Glass + Clay Elevation) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Attendance card */}
-        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
-          <div className="flex items-center justify-between text-workshop-muted mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+      {/* KPI Cards Grid (4 Volumetric Frosted GlassClay Pods) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Pod 1: Attendance */}
+        <div className="glass-clay-card p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               {t.dashboard.todayAttendance}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50/80 border border-blue-200/60 shadow-clay-sm flex items-center justify-center">
-              <Users className="w-4 h-4 text-akfa-600" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200/90 shadow-clay-pill flex items-center justify-center">
+              <Users className="w-5 h-5 text-akfa-600 stroke-[2.4]" />
             </div>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-workshop-text">
+          <div className="flex items-baseline gap-2.5">
+            <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               {presentCount} / {totalWorkers}
             </span>
-            <span className="text-xs text-present-600 font-bold">
+            <span className="text-xs text-present-600 font-black">
               {t.dashboard.presentRatio}
             </span>
           </div>
-          <div className="mt-3 flex items-center gap-3 text-xs">
-            <span className="flex items-center gap-1 text-present-700 font-semibold bg-present-50/70 px-2 py-0.5 rounded-full border border-present-200/60 shadow-clay-sm">
-              <CheckCircle2 className="w-3.5 h-3.5 text-present-600" />
+          <div className="mt-4 flex items-center gap-2.5 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-present-800 font-extrabold bg-gradient-to-b from-present-50 to-present-100/90 px-3 py-1 rounded-full border border-present-200/90 shadow-clay-pill">
+              <CheckCircle2 className="w-3.5 h-3.5 text-present-600 stroke-[2.5]" />
               {presentCount} {t.davomat.present}
             </span>
-            <span className="flex items-center gap-1 text-absent-700 font-semibold bg-absent-50/70 px-2 py-0.5 rounded-full border border-absent-200/60 shadow-clay-sm">
-              <XCircle className="w-3.5 h-3.5 text-absent-600" />
+            <span className="inline-flex items-center gap-1.5 text-absent-800 font-extrabold bg-gradient-to-b from-absent-50 to-absent-100/90 px-3 py-1 rounded-full border border-absent-200/90 shadow-clay-pill">
+              <XCircle className="w-3.5 h-3.5 text-absent-600 stroke-[2.5]" />
               {absentCount} {t.davomat.absent}
             </span>
           </div>
         </div>
 
-        {/* Accrued Payroll */}
-        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
-          <div className="flex items-center justify-between text-workshop-muted mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        {/* Pod 2: Accrued Payroll */}
+        <div className="glass-clay-card p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               {t.dashboard.monthlyAccrued}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50/80 border border-emerald-200/60 shadow-clay-sm flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200/90 shadow-clay-pill flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-emerald-600 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-workshop-text truncate">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 truncate tracking-tight">
             {formatCurrency(financeOverview.totalAccruedSalaries)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-2 font-medium">
+          <p className="text-xs text-slate-500 font-semibold mt-3">
             Davomat va kunlik stavkalar asosida
           </p>
         </div>
 
-        {/* Paid Salaries */}
-        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
-          <div className="flex items-center justify-between text-workshop-muted mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        {/* Pod 3: Paid Salaries */}
+        <div className="glass-clay-card p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               {t.dashboard.monthlyPaid}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-sky-50/80 border border-sky-200/60 shadow-clay-sm flex items-center justify-center">
-              <Receipt className="w-4 h-4 text-blue-600" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200/90 shadow-clay-pill flex items-center justify-center">
+              <Receipt className="w-5 h-5 text-akfa-600 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-workshop-text truncate">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 truncate tracking-tight">
             {formatCurrency(financeOverview.totalPaymentsDistributed)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-2 font-medium">
+          <p className="text-xs text-slate-500 font-semibold mt-3">
             {payments.length} ta kiritilgan to'lov
           </p>
         </div>
 
-        {/* Pending Balance Owed to Workers */}
-        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
-          <div className="flex items-center justify-between text-workshop-muted mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        {/* Pod 4: Outstanding Balance */}
+        <div className="glass-clay-card p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               {t.dashboard.outstandingBalance}
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50/80 border border-amber-200/60 shadow-clay-sm flex items-center justify-center">
-              <Clock className="w-4 h-4 text-amber-600" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200/90 shadow-clay-pill flex items-center justify-center">
+              <Clock className="w-5 h-5 text-amber-600 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-amber-700 truncate">
+          <div className="text-2xl sm:text-3xl font-black text-amber-800 truncate tracking-tight">
             {formatCurrency(financeOverview.totalPendingBalance)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-2 font-medium">
+          <p className="text-xs text-slate-500 font-semibold mt-3">
             Ishchilar oldidagi joriy qarz
           </p>
         </div>
@@ -168,47 +173,59 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
               variant="ghost"
               size="sm"
               onClick={() => onNavigate('davomat')}
-              className="text-akfa-600 font-bold"
+              className="text-akfa-700 font-extrabold rounded-xl"
             >
-              {t.davomat.title} &rarr;
+              <span>{t.davomat.title}</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </Button>
           }
         >
-          <div className="divide-y divide-slate-200/40">
-            {activeWorkers.map((worker) => {
-              const record = todaysAttendance.find((a) => a.workerId === worker.id);
-              const isPresent = record?.status === 'PRESENT';
+          {activeWorkers.length === 0 ? (
+            <p className="text-xs text-slate-500 font-semibold py-4 text-center">
+              Hozircha faol ishchilar yo'q.
+            </p>
+          ) : (
+            <div className="divide-y divide-white/60">
+              {activeWorkers.map((worker) => {
+                const record = todaysAttendance.find((a) => a.workerId === worker.id);
+                const isPresent = record?.status === 'PRESENT';
 
-              return (
-                <div key={worker.id} className="py-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-workshop-text truncate">
-                        {worker.name}
-                      </p>
-                      <Badge role={worker.role} size="sm" />
+                return (
+                  <div key={worker.id} className="py-3.5 flex items-center justify-between gap-3.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="clay-avatar w-10 h-10 rounded-2xl flex items-center justify-center font-black text-slate-800 text-sm flex-shrink-0">
+                        {worker.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-extrabold text-slate-900 truncate">
+                            {worker.name}
+                          </p>
+                          <Badge role={worker.role} size="sm" />
+                        </div>
+                        <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                          {formatCurrency(worker.dailyRate)} / {t.davomat.ratePerDay}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xs text-workshop-muted font-medium mt-0.5">
-                      {formatCurrency(worker.dailyRate)} / {t.davomat.ratePerDay}
-                    </p>
+                    <div>
+                      {isPresent ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-black text-present-800 bg-gradient-to-b from-present-50 to-present-100 px-3.5 py-1.5 rounded-full border border-present-200/90 shadow-clay-pill">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-present-600 stroke-[2.5]" />
+                          {t.davomat.present}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-black text-absent-800 bg-gradient-to-b from-absent-50 to-absent-100 px-3.5 py-1.5 rounded-full border border-absent-200/90 shadow-clay-pill">
+                          <XCircle className="w-3.5 h-3.5 text-absent-600 stroke-[2.5]" />
+                          {t.davomat.absent}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    {isPresent ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-present-700 bg-present-50/85 backdrop-blur-md px-3 py-1 rounded-full border border-present-200/80 shadow-clay-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-present-600" />
-                        {t.davomat.present}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-absent-700 bg-absent-50/85 backdrop-blur-md px-3 py-1 rounded-full border border-absent-200/80 shadow-clay-sm">
-                        <XCircle className="w-3.5 h-3.5 text-absent-600" />
-                        {t.davomat.absent}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </Card>
 
         {/* Recent Payments Feed */}
@@ -220,39 +237,46 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
               variant="ghost"
               size="sm"
               onClick={() => onNavigate('moliya')}
-              className="text-akfa-600 font-bold"
+              className="text-akfa-700 font-extrabold rounded-xl"
             >
-              {t.moliya.title} &rarr;
+              <span>{t.moliya.title}</span>
+              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
             </Button>
           }
         >
-          <div className="divide-y divide-slate-200/40">
-            {payments.slice(0, 4).map((payment) => (
-              <div key={payment.id} className="py-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-workshop-text truncate">
-                    {payment.workerName || 'Ishchi'}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-workshop-muted font-medium mt-0.5">
-                    <span>{formatDate(payment.paymentDate, 'short')}</span>
-                    <span>&bull;</span>
-                    <span>{t.paymentMethods[payment.paymentMethod]}</span>
-                    {payment.notes && (
-                      <>
-                        <span>&bull;</span>
-                        <span className="truncate italic">"{payment.notes}"</span>
-                      </>
-                    )}
+          {payments.length === 0 ? (
+            <p className="text-xs text-slate-500 font-semibold py-4 text-center">
+              Hozircha kiritilgan to'lovlar mavjud emas.
+            </p>
+          ) : (
+            <div className="divide-y divide-white/60">
+              {payments.slice(0, 4).map((payment) => (
+                <div key={payment.id} className="py-3.5 flex items-center justify-between gap-3.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-extrabold text-slate-900 truncate">
+                      {payment.workerName || 'Ishchi'}
+                    </p>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold mt-0.5">
+                      <span>{formatDate(payment.paymentDate, 'short')}</span>
+                      <span>&bull;</span>
+                      <span>{t.paymentMethods[payment.paymentMethod]}</span>
+                      {payment.notes && (
+                        <>
+                          <span>&bull;</span>
+                          <span className="truncate italic">"{payment.notes}"</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <span className="text-sm font-black text-akfa-700 bg-blue-50/80 px-3 py-1 rounded-full border border-blue-200/70 shadow-clay-pill">
+                      {formatCurrency(payment.amount)}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <span className="text-sm font-extrabold text-akfa-700">
-                    {formatCurrency(payment.amount)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
     </div>

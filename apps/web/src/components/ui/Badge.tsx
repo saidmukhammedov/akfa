@@ -38,21 +38,21 @@ export const Badge: React.FC<BadgeProps> = ({
   }
 
   const variantStyles = {
-    primary: 'bg-akfa-50/85 text-akfa-700 border-akfa-200/80',
-    success: 'bg-present-50/85 text-present-700 border-present-200/80',
-    danger: 'bg-absent-50/85 text-absent-700 border-absent-200/80',
-    warning: 'bg-amber-50/85 text-amber-800 border-amber-200/80',
-    neutral: 'bg-slate-100/85 text-slate-700 border-slate-200/80',
+    primary: 'bg-gradient-to-b from-blue-50 to-blue-100/90 text-akfa-800 border-blue-200/90',
+    success: 'bg-gradient-to-b from-emerald-50 to-emerald-100/90 text-emerald-900 border-emerald-200/90',
+    danger: 'bg-gradient-to-b from-rose-50 to-rose-100/90 text-rose-900 border-rose-200/90',
+    warning: 'bg-gradient-to-b from-amber-50 to-amber-100/90 text-amber-900 border-amber-200/90',
+    neutral: 'bg-gradient-to-b from-white to-slate-100/90 text-slate-700 border-slate-200/90',
   };
 
   const sizeStyles = {
-    sm: 'text-[11px] px-2.5 py-0.5',
-    md: 'text-xs px-3 py-1',
+    sm: 'text-[11px] px-3 py-0.5',
+    md: 'text-xs px-3.5 py-1',
   };
 
   return (
     <span
-      className={`inline-flex items-center font-bold rounded-full border shadow-clay-sm backdrop-blur-md ${variantStyles[computedVariant]} ${sizeStyles[size]}`}
+      className={`inline-flex items-center font-extrabold rounded-full border shadow-clay-pill backdrop-blur-md ${variantStyles[computedVariant]} ${sizeStyles[size]}`}
     >
       {text}
     </span>

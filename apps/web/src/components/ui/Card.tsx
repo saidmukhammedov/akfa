@@ -19,20 +19,18 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   const paddingClasses = {
     none: 'p-0',
-    sm: 'p-3.5 sm:p-4',
-    md: 'p-4 sm:p-6',
-    lg: 'p-6 sm:p-8',
+    sm: 'p-4 sm:p-5',
+    md: 'p-5 sm:p-7',
+    lg: 'p-7 sm:p-9',
   };
 
   return (
-    <div
-      className={`bg-white/75 backdrop-blur-xl border border-white/80 rounded-2xl sm:rounded-3xl shadow-clay-card transition-all duration-200 ${paddingClasses[padding]} ${className}`}
-    >
+    <div className={`glass-clay-card ${paddingClasses[padding]} ${className}`}>
       {(title || action) && (
-        <div className="flex items-start justify-between gap-4 mb-4 pb-3 border-b border-slate-200/50">
+        <div className="flex items-start justify-between gap-4 mb-5 pb-3.5 border-b border-white/60">
           <div>
-            {title && <h3 className="font-bold text-workshop-text text-base sm:text-lg tracking-tight">{title}</h3>}
-            {subtitle && <p className="text-xs text-workshop-muted mt-0.5">{subtitle}</p>}
+            {title && <h3 className="font-extrabold text-slate-900 text-base sm:text-xl tracking-tight">{title}</h3>}
+            {subtitle && <p className="text-xs text-slate-500 font-medium mt-0.5">{subtitle}</p>}
           </div>
           {action && <div className="flex-shrink-0">{action}</div>}
         </div>
