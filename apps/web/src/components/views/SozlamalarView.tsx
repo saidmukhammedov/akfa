@@ -139,36 +139,36 @@ export const SozlamalarView: React.FC = () => {
   const displayedWorkers = workerListFilter === 'ACTIVE' ? activeWorkers : archivedWorkers;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* View Header */}
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-workshop-text">{t.sozlamalar.title}</h2>
+        <h2 className="text-xl sm:text-2xl font-extrabold text-workshop-text tracking-tight">{t.sozlamalar.title}</h2>
         <p className="text-xs sm:text-sm text-workshop-muted mt-0.5">{t.sozlamalar.subtitle}</p>
       </div>
 
-      {/* Segmented Sub Tabs */}
-      <div className="flex border-b border-workshop-border">
+      {/* Segmented Sub Tabs (Frosted Capsule) */}
+      <div className="inline-flex p-1 bg-slate-200/50 backdrop-blur-md rounded-2xl border border-white/70 shadow-inner">
         <button
           onClick={() => setActiveSubTab('workers')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all duration-150 active:scale-95 cursor-pointer ${
             activeSubTab === 'workers'
-              ? 'border-akfa-600 text-akfa-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-white/95 text-akfa-700 shadow-clay-card border border-white'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
           }`}
         >
           <Users className="w-4 h-4" />
           <span>{t.sozlamalar.tabWorkers}</span>
-          <span className="ml-1 text-[11px] px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600">
+          <span className="ml-1 text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold shadow-clay-sm">
             {activeWorkers.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveSubTab('profile')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all duration-150 active:scale-95 cursor-pointer ${
             activeSubTab === 'profile'
-              ? 'border-akfa-600 text-akfa-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-white/95 text-akfa-700 shadow-clay-card border border-white'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
           }`}
         >
           <Building2 className="w-4 h-4" />
@@ -181,12 +181,12 @@ export const SozlamalarView: React.FC = () => {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             {/* Filter Toggle: Active vs Archived */}
-            <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <div className="inline-flex p-1 bg-slate-200/50 backdrop-blur-md rounded-2xl border border-white/70 shadow-inner">
               <button
                 onClick={() => setWorkerListFilter('ACTIVE')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer ${
                   workerListFilter === 'ACTIVE'
-                    ? 'bg-white text-akfa-700 shadow-sm'
+                    ? 'bg-white/95 text-akfa-700 shadow-clay-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -194,9 +194,9 @@ export const SozlamalarView: React.FC = () => {
               </button>
               <button
                 onClick={() => setWorkerListFilter('ARCHIVED')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer ${
                   workerListFilter === 'ARCHIVED'
-                    ? 'bg-white text-akfa-700 shadow-sm'
+                    ? 'bg-white/95 text-akfa-700 shadow-clay-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -204,7 +204,7 @@ export const SozlamalarView: React.FC = () => {
               </button>
             </div>
 
-            <Button variant="primary" size="sm" onClick={openAddWorkerModal}>
+            <Button variant="primary" size="sm" onClick={openAddWorkerModal} className="shadow-clay-btn-primary rounded-2xl">
               <UserPlus className="w-4 h-4" />
               <span>{t.sozlamalar.addWorkerBtn}</span>
             </Button>
@@ -220,7 +220,7 @@ export const SozlamalarView: React.FC = () => {
               }
               action={
                 workerListFilter === 'ACTIVE' && (
-                  <Button variant="primary" size="sm" onClick={openAddWorkerModal}>
+                  <Button variant="primary" size="sm" onClick={openAddWorkerModal} className="rounded-2xl">
                     <UserPlus className="w-4 h-4" />
                     <span>{t.sozlamalar.addWorkerBtn}</span>
                   </Button>
@@ -229,24 +229,24 @@ export const SozlamalarView: React.FC = () => {
             />
           ) : (
             <Card padding="none">
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-200/40">
                 {displayedWorkers.map((worker) => (
                   <div
                     key={worker.id}
-                    className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors"
+                    className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 hover:bg-white/50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-sm shadow-clay-sm flex-shrink-0">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-white to-slate-100 border border-white/90 shadow-clay-sm flex items-center justify-center font-extrabold text-slate-800 text-sm flex-shrink-0">
                         {worker.name.charAt(0)}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold text-workshop-text">{worker.name}</h4>
+                          <h4 className="text-sm sm:text-base font-bold text-workshop-text">{worker.name}</h4>
                           <Badge role={worker.role} size="sm" />
                           <Badge status={worker.status} size="sm" />
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-workshop-muted mt-0.5">
-                          <span className="font-semibold text-slate-700">
+                        <div className="flex items-center gap-2 text-xs text-workshop-muted font-medium mt-0.5">
+                          <span className="font-bold text-slate-700">
                             {formatCurrency(worker.dailyRate)}
                           </span>
                           <span>&bull;</span>
@@ -266,7 +266,7 @@ export const SozlamalarView: React.FC = () => {
                         variant="secondary"
                         size="sm"
                         onClick={() => openEditWorkerModal(worker)}
-                        className="text-xs"
+                        className="text-xs font-bold rounded-xl"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                         <span>{t.common.edit}</span>
@@ -281,7 +281,7 @@ export const SozlamalarView: React.FC = () => {
                               archiveWorker(worker.id);
                             }
                           }}
-                          className="text-xs text-amber-700 hover:bg-amber-50"
+                          className="text-xs font-bold text-amber-700 hover:bg-amber-50/80 rounded-xl"
                         >
                           <Archive className="w-3.5 h-3.5" />
                           <span>{t.sozlamalar.archiveWorker}</span>
@@ -295,7 +295,7 @@ export const SozlamalarView: React.FC = () => {
                               unarchiveWorker(worker.id);
                             }
                           }}
-                          className="text-xs text-emerald-700 hover:bg-emerald-50"
+                          className="text-xs font-bold text-emerald-700 hover:bg-emerald-50/80 rounded-xl"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
                           <span>{t.sozlamalar.unarchiveWorker}</span>
@@ -310,7 +310,7 @@ export const SozlamalarView: React.FC = () => {
                             deleteWorker(worker.id);
                           }
                         }}
-                        className="text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                        className="text-xs font-bold text-rose-600 hover:bg-rose-50/80 hover:text-rose-700 rounded-xl"
                         title={t.common.delete}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -331,14 +331,14 @@ export const SozlamalarView: React.FC = () => {
           <Card title={t.sozlamalar.ownerProfileTitle} subtitle={t.app.ownerOnlyNotice}>
             <form onSubmit={handleProfileSave} className="space-y-4">
               {profileSuccessMsg && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center gap-2">
+                <div className="p-3.5 rounded-2xl bg-emerald-50/90 backdrop-blur-md border border-emerald-200 text-xs text-emerald-800 font-bold flex items-center gap-2 shadow-clay-sm">
                   <Check className="w-4 h-4 text-emerald-600" />
                   <span>Profil muvaffaqiyatli saqlandi</span>
                 </div>
               )}
 
               {profileErrorMsg && (
-                <div className="p-3.5 rounded-xl bg-absent-50 border border-absent-200 text-xs sm:text-sm text-absent-800 font-medium flex items-start gap-2">
+                <div className="p-3.5 rounded-2xl bg-absent-50/90 backdrop-blur-md border border-absent-200 text-xs sm:text-sm text-absent-800 font-semibold flex items-start gap-2 shadow-clay-sm">
                   <AlertCircle className="w-4 h-4 text-absent-600 flex-shrink-0 mt-0.5" />
                   <span className="flex-1">{profileErrorMsg}</span>
                 </div>
@@ -360,21 +360,21 @@ export const SozlamalarView: React.FC = () => {
 
               {/* Language Selection Setting */}
               <div>
-                <label className="block text-xs font-semibold text-workshop-text mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   {t.sozlamalar.languagePreference}
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setLang('uz')}
-                    className={`p-3 text-left rounded-xl border text-xs transition-all ${
+                    className={`p-3.5 text-left rounded-2xl border text-xs transition-all active:scale-[0.98] cursor-pointer ${
                       lang === 'uz'
-                        ? 'border-akfa-600 bg-akfa-50/70 text-akfa-900 font-bold shadow-clay-sm'
-                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        ? 'border-akfa-400/80 bg-akfa-50/80 backdrop-blur-md text-akfa-900 font-bold shadow-clay-card'
+                        : 'border-white/90 bg-white/70 text-slate-700 hover:bg-white'
                     }`}
                   >
                     <span className="block font-bold">O'zbekcha (Lotin)</span>
-                    <span className="text-[11px] text-slate-500 font-normal">
+                    <span className="text-[11px] text-slate-500 font-medium mt-0.5 block">
                       Asosiy tizim tili
                     </span>
                   </button>
@@ -382,22 +382,22 @@ export const SozlamalarView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setLang('ru')}
-                    className={`p-3 text-left rounded-xl border text-xs transition-all ${
+                    className={`p-3.5 text-left rounded-2xl border text-xs transition-all active:scale-[0.98] cursor-pointer ${
                       lang === 'ru'
-                        ? 'border-akfa-600 bg-akfa-50/70 text-akfa-900 font-bold shadow-clay-sm'
-                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        ? 'border-akfa-400/80 bg-akfa-50/80 backdrop-blur-md text-akfa-900 font-bold shadow-clay-card'
+                        : 'border-white/90 bg-white/70 text-slate-700 hover:bg-white'
                     }`}
                   >
                     <span className="block font-bold">Русский язык</span>
-                    <span className="text-[11px] text-slate-500 font-normal">
+                    <span className="text-[11px] text-slate-500 font-medium mt-0.5 block">
                       Интерфейс на русском
                     </span>
                   </button>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex justify-end">
-                <Button type="submit" variant="primary" size="md" disabled={isSubmittingProfile}>
+              <div className="pt-4 border-t border-slate-200/50 flex justify-end">
+                <Button type="submit" variant="primary" size="md" disabled={isSubmittingProfile} className="rounded-2xl">
                   {isSubmittingProfile ? t.common.loading : t.sozlamalar.saveProfileBtn}
                 </Button>
               </div>
@@ -414,7 +414,7 @@ export const SozlamalarView: React.FC = () => {
       >
         <form onSubmit={handleWorkerSubmit} className="space-y-4">
           {workerFormError && (
-            <div className="p-3.5 rounded-xl bg-absent-50 border border-absent-200 text-xs sm:text-sm text-absent-800 font-medium flex items-start gap-2 animate-in fade-in">
+            <div className="p-3.5 rounded-2xl bg-absent-50/90 backdrop-blur-md border border-absent-200 text-xs sm:text-sm text-absent-800 font-semibold flex items-start gap-2 animate-in fade-in shadow-clay-sm">
               <AlertCircle className="w-4 h-4 text-absent-600 flex-shrink-0 mt-0.5" />
               <span className="flex-1">{workerFormError}</span>
             </div>
@@ -436,13 +436,13 @@ export const SozlamalarView: React.FC = () => {
           />
 
           <div>
-            <label className="block text-xs font-semibold text-workshop-text mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               {t.sozlamalar.workerRoleLabel}
             </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as WorkerRole)}
-              className="w-full px-3.5 py-2.5 bg-white border border-workshop-border rounded-xl text-sm text-workshop-text focus:outline-none focus:ring-2 focus:ring-akfa-500/20 focus:border-akfa-600"
+              className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-white/80 rounded-2xl text-sm font-medium text-workshop-text focus:outline-none focus:ring-4 focus:ring-akfa-500/15 focus:border-akfa-500 focus:bg-white/95 transition-all shadow-inner"
             >
               <option value="usta">{t.roles.usta}</option>
               <option value="shogird">{t.roles.shogird}</option>
@@ -461,13 +461,13 @@ export const SozlamalarView: React.FC = () => {
               onChange={(e) => setDailyRate(e.target.value)}
               required
             />
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-wrap gap-1.5 mt-2.5">
               {[120000, 150000, 200000, 250000, 300000].map((rate) => (
                 <button
                   key={rate}
                   type="button"
                   onClick={() => setDailyRate(String(rate))}
-                  className="px-2 py-0.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-medium transition-all"
+                  className="px-3 py-1.5 text-xs bg-slate-200/50 backdrop-blur-md hover:bg-white text-slate-700 rounded-full font-bold border border-white/70 shadow-clay-sm transition-all active:scale-95 cursor-pointer"
                 >
                   {formatCurrency(rate)}
                 </button>
@@ -475,7 +475,7 @@ export const SozlamalarView: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-200/50">
             <Button
               type="button"
               variant="ghost"
@@ -484,7 +484,7 @@ export const SozlamalarView: React.FC = () => {
             >
               {t.common.cancel}
             </Button>
-            <Button type="submit" variant="primary" size="md" disabled={isSubmittingWorker}>
+            <Button type="submit" variant="primary" size="md" disabled={isSubmittingWorker} className="rounded-2xl">
               {isSubmittingWorker ? t.common.loading : t.common.save}
             </Button>
           </div>

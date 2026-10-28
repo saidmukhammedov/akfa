@@ -38,21 +38,21 @@ export const Badge: React.FC<BadgeProps> = ({
   }
 
   const variantStyles = {
-    primary: 'bg-akfa-50 text-akfa-700 border-akfa-200',
-    success: 'bg-present-50 text-present-700 border-present-200',
-    danger: 'bg-absent-50 text-absent-700 border-absent-200',
-    warning: 'bg-amber-50 text-amber-800 border-amber-200',
-    neutral: 'bg-slate-100 text-slate-700 border-slate-200',
+    primary: 'bg-akfa-50/85 text-akfa-700 border-akfa-200/80',
+    success: 'bg-present-50/85 text-present-700 border-present-200/80',
+    danger: 'bg-absent-50/85 text-absent-700 border-absent-200/80',
+    warning: 'bg-amber-50/85 text-amber-800 border-amber-200/80',
+    neutral: 'bg-slate-100/85 text-slate-700 border-slate-200/80',
   };
 
   const sizeStyles = {
-    sm: 'text-[11px] px-2 py-0.5',
-    md: 'text-xs px-2.5 py-1',
+    sm: 'text-[11px] px-2.5 py-0.5',
+    md: 'text-xs px-3 py-1',
   };
 
   return (
     <span
-      className={`inline-flex items-center font-medium rounded-full border shadow-sm ${variantStyles[computedVariant]} ${sizeStyles[size]}`}
+      className={`inline-flex items-center font-bold rounded-full border shadow-clay-sm backdrop-blur-md ${variantStyles[computedVariant]} ${sizeStyles[size]}`}
     >
       {text}
     </span>

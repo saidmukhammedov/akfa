@@ -4,29 +4,38 @@
 
 @layer base {
   body {
-    @apply bg-workshop-bg text-workshop-text font-sans antialiased min-h-screen selection:bg-akfa-100 selection:text-akfa-900;
+    @apply bg-slate-100 text-workshop-text font-sans antialiased min-h-screen selection:bg-akfa-100 selection:text-akfa-900;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(199, 210, 254, 0.25) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(186, 230, 253, 0.3) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(209, 250, 229, 0.2) 0px, transparent 50%);
+    background-attachment: fixed;
     -webkit-tap-highlight-color: transparent;
   }
 }
 
 @layer components {
-  /* Tactile claymorphic card */
+  /* Frosted Glass + Clay Surface */
+  .glass-clay-card {
+    @apply bg-white/75 backdrop-blur-xl border border-white/80 rounded-3xl shadow-clay-card transition-all duration-200;
+  }
+
+  .glass-clay-card:hover {
+    @apply shadow-clay-card-hover border-white/95;
+  }
+
+  /* Tactile clay surface */
   .clay-surface {
-    @apply bg-workshop-surface border border-workshop-border rounded-clay shadow-clay-card transition-all duration-150;
+    @apply bg-white/80 backdrop-blur-xl border border-white/80 rounded-3xl shadow-clay-card transition-all duration-150;
   }
 
   /* Tactile button with depressed feedback */
   .clay-interactive {
-    @apply transition-all duration-100 active:scale-[0.98] active:translate-y-0.5 select-none;
+    @apply transition-all duration-150 active:scale-[0.98] active:translate-y-0.5 select-none;
   }
 
-  /* Attendance Pill Button - Present */
-  .clay-pill-present {
-    @apply shadow-clay-pill border border-present-500/30 bg-present-50 text-present-700 font-medium active:shadow-clay-pressed;
-  }
-
-  /* Attendance Pill Button - Absent */
-  .clay-pill-absent {
-    @apply shadow-clay-pill border border-absent-500/30 bg-absent-50 text-absent-700 font-medium active:shadow-clay-pressed;
+  /* Frosted Glass Inset Control Slot */
+  .glass-slot {
+    @apply bg-slate-200/50 backdrop-blur-md rounded-full border border-white/60 shadow-inner;
   }
 }

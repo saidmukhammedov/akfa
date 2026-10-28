@@ -89,67 +89,73 @@ export const MoliyaView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-150">
+    <div className="space-y-6 animate-in fade-in duration-200">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-workshop-text">{t.moliya.title}</h2>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-workshop-text tracking-tight">{t.moliya.title}</h2>
           <p className="text-xs sm:text-sm text-workshop-muted mt-0.5">{t.moliya.subtitle}</p>
         </div>
         <Button
           variant="primary"
           size="md"
           onClick={() => openPaymentModal()}
-          className="self-start sm:self-auto"
+          className="self-start sm:self-auto shadow-clay-btn-primary rounded-2xl"
         >
           <PlusCircle className="w-4 h-4" />
           <span>{t.moliya.recordPaymentBtn}</span>
         </Button>
       </div>
 
-      {/* Financial Overview Cards */}
+      {/* Financial Overview Cards (Frosted Glass Clay) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-clay p-5 border border-workshop-border shadow-clay-card">
-          <div className="flex items-center justify-between text-workshop-muted mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">
+        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
+          <div className="flex items-center justify-between text-workshop-muted mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               {t.dashboard.monthlyAccrued}
             </span>
-            <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <div className="w-8 h-8 rounded-xl bg-emerald-50/80 border border-emerald-200/60 shadow-clay-sm flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-emerald-600" />
+            </div>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-workshop-text truncate">
             {formatCurrency(financeOverview.totalAccruedSalaries)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-1.5">
+          <p className="text-[11px] text-workshop-muted mt-1.5 font-medium">
             Davomat va kunlik stavkalar asosida
           </p>
         </div>
 
-        <div className="bg-white rounded-clay p-5 border border-workshop-border shadow-clay-card">
-          <div className="flex items-center justify-between text-workshop-muted mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">
+        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
+          <div className="flex items-center justify-between text-workshop-muted mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               {t.dashboard.monthlyPaid}
             </span>
-            <Receipt className="w-4 h-4 text-blue-600" />
+            <div className="w-8 h-8 rounded-xl bg-sky-50/80 border border-sky-200/60 shadow-clay-sm flex items-center justify-center">
+              <Receipt className="w-4 h-4 text-blue-600" />
+            </div>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-workshop-text truncate">
             {formatCurrency(financeOverview.totalPaymentsDistributed)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-1.5">
+          <p className="text-[11px] text-workshop-muted mt-1.5 font-medium">
             Tarqatilgan ish haqi va avanslar
           </p>
         </div>
 
-        <div className="bg-white rounded-clay p-5 border border-workshop-border shadow-clay-card">
-          <div className="flex items-center justify-between text-workshop-muted mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">
+        <div className="bg-white/75 backdrop-blur-xl rounded-3xl p-5 border border-white/80 shadow-clay-card hover:shadow-clay-card-hover transition-all duration-200">
+          <div className="flex items-center justify-between text-workshop-muted mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               {t.dashboard.outstandingBalance}
             </span>
-            <Wallet className="w-4 h-4 text-amber-600" />
+            <div className="w-8 h-8 rounded-xl bg-amber-50/80 border border-amber-200/60 shadow-clay-sm flex items-center justify-center">
+              <Wallet className="w-4 h-4 text-amber-600" />
+            </div>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-amber-700 truncate">
             {formatCurrency(financeOverview.totalPendingBalance)}
           </div>
-          <p className="text-[11px] text-workshop-muted mt-1.5">
+          <p className="text-[11px] text-workshop-muted mt-1.5 font-medium">
             Ishchilar oldidagi jami to'lanishi kerak bo'lgan qoldiq
           </p>
         </div>
@@ -163,7 +169,7 @@ export const MoliyaView: React.FC = () => {
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50/80 text-xs font-semibold text-workshop-muted uppercase tracking-wider border-b border-workshop-border">
+            <thead className="bg-slate-200/40 backdrop-blur-md text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-white/80">
               <tr>
                 <th className="py-3 px-4">{t.moliya.tableWorker}</th>
                 <th className="py-3 px-4">{t.moliya.tableDailyRate}</th>
@@ -174,45 +180,45 @@ export const MoliyaView: React.FC = () => {
                 <th className="py-3 px-4 text-right">{t.common.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200/40">
               {financeSummaries.map((summary) => {
                 const isOverpaid = summary.balanceOwed < 0;
                 return (
-                  <tr key={summary.workerId} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={summary.workerId} className="hover:bg-white/50 transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-workshop-text">{summary.name}</span>
+                        <span className="font-bold text-workshop-text">{summary.name}</span>
                         <Badge role={summary.role} size="sm" />
                         {summary.status === 'ARCHIVED' && (
-                          <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-200/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-slate-300/60 shadow-clay-sm">
                             Arxiv
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600">
+                    <td className="py-3.5 px-4 text-slate-600 font-medium">
                       {formatCurrency(summary.currentDailyRate)}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-700">
+                    <td className="py-3.5 px-4 font-bold text-slate-800">
                       {summary.daysWorked} kun
                     </td>
                     <td className="py-3.5 px-4 font-bold text-workshop-text">
                       {formatCurrency(summary.totalAccruedSalary)}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600">
+                    <td className="py-3.5 px-4 text-slate-600 font-medium">
                       {formatCurrency(summary.totalPaid)}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       {isOverpaid ? (
-                        <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                        <span className="text-xs font-bold text-blue-700 bg-blue-50/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-blue-200/80 shadow-clay-sm">
                           {formatCurrency(Math.abs(summary.balanceOwed))} avans
                         </span>
                       ) : summary.balanceOwed === 0 ? (
-                        <span className="text-xs font-medium text-slate-500">
+                        <span className="text-xs font-semibold text-slate-500">
                           0 so'm
                         </span>
                       ) : (
-                        <span className="font-bold text-amber-700">
+                        <span className="font-extrabold text-amber-700">
                           {formatCurrency(summary.balanceOwed)}
                         </span>
                       )}
@@ -222,7 +228,7 @@ export const MoliyaView: React.FC = () => {
                         variant="secondary"
                         size="sm"
                         onClick={() => openPaymentModal(summary.workerId)}
-                        className="text-xs font-semibold"
+                        className="text-xs font-bold rounded-xl"
                       >
                         <ArrowUpRight className="w-3.5 h-3.5" />
                         <span>{t.moliya.recordPaymentBtn}</span>
@@ -238,7 +244,7 @@ export const MoliyaView: React.FC = () => {
 
       {/* Recent Payments Feed */}
       <Card title={t.moliya.paymentHistory} subtitle="Kiritilgan to'lovlar jurnali" padding="none">
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-slate-200/40">
           {payments.map((p) => {
             const methodIcon =
               p.paymentMethod === 'CARD' ? (
@@ -252,12 +258,12 @@ export const MoliyaView: React.FC = () => {
             return (
               <div key={p.id} className="p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200 shadow-sm flex-shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-white/80 border border-white/90 shadow-clay-sm flex items-center justify-center flex-shrink-0">
                     {methodIcon}
                   </div>
                   <div>
-                    <h5 className="text-sm font-semibold text-workshop-text">{p.workerName}</h5>
-                    <div className="flex items-center gap-2 text-xs text-workshop-muted mt-0.5">
+                    <h5 className="text-sm font-bold text-workshop-text">{p.workerName}</h5>
+                    <div className="flex items-center gap-2 text-xs text-workshop-muted font-medium mt-0.5">
                       <span>{formatDate(p.paymentDate, 'medium')}</span>
                       <span>&bull;</span>
                       <span>{t.paymentMethods[p.paymentMethod]}</span>
@@ -289,7 +295,7 @@ export const MoliyaView: React.FC = () => {
       >
         <form onSubmit={handleRecordPayment} className="space-y-4">
           {formError && (
-            <div className="p-3.5 rounded-xl bg-absent-50 border border-absent-200 text-xs sm:text-sm text-absent-800 font-medium flex items-start gap-2 animate-in fade-in">
+            <div className="p-3.5 rounded-2xl bg-absent-50/90 backdrop-blur-md border border-absent-200 text-xs sm:text-sm text-absent-800 font-semibold flex items-start gap-2 animate-in fade-in shadow-clay-sm">
               <AlertCircle className="w-4 h-4 text-absent-600 flex-shrink-0 mt-0.5" />
               <span className="flex-1">{formError}</span>
             </div>
@@ -297,7 +303,7 @@ export const MoliyaView: React.FC = () => {
 
           {/* Worker Select */}
           <div>
-            <label className="block text-xs font-semibold text-workshop-text mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               {t.moliya.tableWorker}
             </label>
             <select
@@ -310,7 +316,7 @@ export const MoliyaView: React.FC = () => {
                   setAmount(String(s.balanceOwed));
                 }
               }}
-              className="w-full px-3.5 py-2.5 bg-white border border-workshop-border rounded-xl text-sm text-workshop-text focus:outline-none focus:ring-2 focus:ring-akfa-500/20 focus:border-akfa-600"
+              className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-white/80 rounded-2xl text-sm font-medium text-workshop-text focus:outline-none focus:ring-4 focus:ring-akfa-500/15 focus:border-akfa-500 focus:bg-white/95 transition-all shadow-inner"
             >
               {workers.map((w) => {
                 const sum = financeSummaries.find((s) => s.workerId === w.id);
@@ -333,13 +339,13 @@ export const MoliyaView: React.FC = () => {
               onChange={(e) => setAmount(e.target.value)}
               required
             />
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-wrap gap-1.5 mt-2.5">
               {[200000, 500000, 1000000, 1500000].map((quick) => (
                 <button
                   key={quick}
                   type="button"
                   onClick={() => setQuickAmount(quick)}
-                  className="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-all"
+                  className="px-3 py-1.5 text-xs bg-slate-200/50 backdrop-blur-md hover:bg-white text-slate-700 rounded-full font-bold border border-white/70 shadow-clay-sm transition-all active:scale-95 cursor-pointer"
                 >
                   {formatCurrency(quick)}
                 </button>
@@ -347,21 +353,21 @@ export const MoliyaView: React.FC = () => {
             </div>
           </div>
 
-          {/* Payment Method */}
+          {/* Payment Method Segmented Switcher */}
           <div>
-            <label className="block text-xs font-semibold text-workshop-text mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               {t.moliya.methodLabel}
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="p-1 bg-slate-200/50 backdrop-blur-md rounded-2xl border border-white/70 shadow-inner grid grid-cols-3 gap-1.5">
               {(['CASH', 'CARD', 'BANK_TRANSFER'] as PaymentMethod[]).map((method) => (
                 <button
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`py-2 px-3 text-xs font-semibold rounded-xl border text-center transition-all ${
+                  className={`py-2 px-3 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer ${
                     paymentMethod === method
-                      ? 'bg-akfa-600 text-white border-akfa-600 shadow-clay-btn'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      ? 'bg-gradient-to-b from-akfa-500 to-akfa-600 text-white shadow-clay-btn-primary border border-akfa-400/40'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
                   }`}
                 >
                   {t.paymentMethods[method]}
@@ -388,7 +394,7 @@ export const MoliyaView: React.FC = () => {
             onChange={(e) => setNotes(e.target.value)}
           />
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-200/50">
             <Button
               type="button"
               variant="ghost"
@@ -397,7 +403,7 @@ export const MoliyaView: React.FC = () => {
             >
               {t.common.cancel}
             </Button>
-            <Button type="submit" variant="primary" size="md" disabled={isSubmitting}>
+            <Button type="submit" variant="primary" size="md" disabled={isSubmitting} className="rounded-2xl">
               {isSubmitting ? t.common.loading : t.common.save}
             </Button>
           </div>

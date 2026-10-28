@@ -13,20 +13,20 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-semibold text-workshop-text mb-1.5">
+          <label htmlFor={inputId} className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
             {label}
           </label>
         )}
         <input
           ref={ref}
           id={inputId}
-          className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-sm text-workshop-text placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-akfa-500/20 focus:border-akfa-600 transition-all shadow-sm ${
-            error ? 'border-absent-500 bg-absent-50/20' : 'border-workshop-border'
+          className={`w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border rounded-2xl text-sm font-medium text-workshop-text placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-akfa-500/15 focus:border-akfa-500 focus:bg-white/95 transition-all shadow-inner ${
+            error ? 'border-absent-400 bg-absent-50/40 focus:ring-absent-500/20' : 'border-white/90 focus:ring-akfa-500/20'
           } ${className}`}
           {...props}
         />
-        {error && <p className="text-xs text-absent-600 mt-1 font-medium">{error}</p>}
-        {helperText && !error && <p className="text-xs text-workshop-muted mt-1">{helperText}</p>}
+        {error && <p className="text-xs text-absent-600 mt-1.5 font-semibold">{error}</p>}
+        {helperText && !error && <p className="text-xs text-workshop-muted mt-1.5">{helperText}</p>}
       </div>
     );
   }
