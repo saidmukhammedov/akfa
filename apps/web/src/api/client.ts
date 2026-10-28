@@ -205,6 +205,18 @@ export const api = {
       request<{ success: boolean; data: Worker; message: string }>(`/workers/${id}/unarchive`, {
         method: 'POST',
       }),
+    delete: async (id: string) =>
+      request<{ success: boolean; message: string }>(`/workers/${id}`, {
+        method: 'DELETE',
+      }),
+    purgeAll: async () =>
+      request<{
+        success: boolean;
+        message: string;
+        data: { attendances: number; payments: number; workers: number };
+      }>('/workers/all', {
+        method: 'DELETE',
+      }),
   },
 
   attendance: {

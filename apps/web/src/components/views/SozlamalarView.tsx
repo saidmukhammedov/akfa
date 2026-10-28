@@ -15,10 +15,9 @@ import {
   Archive,
   RotateCcw,
   Building2,
-  Shield,
-  Database,
   Pencil,
   Check,
+  Trash2,
 } from 'lucide-react';
 
 export const SozlamalarView: React.FC = () => {
@@ -31,9 +30,10 @@ export const SozlamalarView: React.FC = () => {
     updateWorker,
     archiveWorker,
     unarchiveWorker,
+    deleteWorker,
   } = useAppState();
 
-  const [activeSubTab, setActiveSubTab] = useState<'workers' | 'profile' | 'system'>('workers');
+  const [activeSubTab, setActiveSubTab] = useState<'workers' | 'profile'>('workers');
   const [workerListFilter, setWorkerListFilter] = useState<'ACTIVE' | 'ARCHIVED'>('ACTIVE');
 
   // Add / Edit Worker Modal State
@@ -167,18 +167,6 @@ export const SozlamalarView: React.FC = () => {
           <Building2 className="w-4 h-4" />
           <span>{t.sozlamalar.tabProfile}</span>
         </button>
-
-        <button
-          onClick={() => setActiveSubTab('system')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 transition-all ${
-            activeSubTab === 'system'
-              ? 'border-akfa-600 text-akfa-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <Database className="w-4 h-4" />
-          <span>{t.sozlamalar.tabSystem}</span>
-        </button>
       </div>
 
       {/* SUB-TAB 1: WORKERS MANAGEMENT (ACCESSIBLE ONLY THROUGH SOZLAMALAR) */}
@@ -306,6 +294,21 @@ export const SozlamalarView: React.FC = () => {
                           <span>{t.sozlamalar.unarchiveWorker}</span>
                         </Button>
                       )}
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm(`"${worker.name}" ishchisini butunlay o'chirishni tasdiqlaysizmi?`)) {
+                            deleteWorker(worker.id);
+                          }
+                        }}
+                        className="text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                        title={t.common.delete}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>{t.common.delete}</span>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -385,45 +388,6 @@ export const SozlamalarView: React.FC = () => {
                 </Button>
               </div>
             </form>
-          </Card>
-        </div>
-      )}
-
-      {/* SUB-TAB 3: SYSTEM INFO & NEON POSTGRESQL ARCHITECTURE */}
-      {activeSubTab === 'system' && (
-        <div className="max-w-2xl space-y-4">
-          <Card title={t.sozlamalar.systemInfo} subtitle="Arxitektura va o'rnatilgan texnologiyalar">
-            <div className="space-y-3 text-xs">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-slate-600 font-medium">Baza arxitekturasi:</span>
-                <span className="font-semibold text-slate-900 flex items-center gap-1.5">
-                  <Database className="w-3.5 h-3.5 text-akfa-600" />
-                  Neon PostgreSQL + Prisma ORM
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-slate-600 font-medium">Foydalanuvchi huquqlari:</span>
-                <span className="font-semibold text-slate-900 flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-emerald-600" />
-                  Faqat Ustaxona Egasi (Owner-only)
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-slate-600 font-medium">Tizim holati:</span>
-                <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Phase 1 Tasdiqlangan
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-slate-600 font-medium">Paketlar tuzilmasi:</span>
-                <span className="font-mono text-[11px] text-slate-700">
-                  apps/web, apps/api, packages/shared
-                </span>
-              </div>
-            </div>
           </Card>
         </div>
       )}

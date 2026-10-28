@@ -451,8 +451,28 @@ async function runTests() {
     assert.strictEqual(overview.totalPendingBalance, 150000, 'Balance must persist across restart');
     console.log('✓ All records and balances persisted 100% intact across API server restart');
 
+    console.log('\n--- 12. Testing Worker Deletion & Complete Purge of History ---');
+    const purgeRes = await fetch(`${BASE_URL}/workers/all`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    assert.strictEqual(purgeRes.status, 200);
+    const purgeData = await purgeRes.json();
+    assert.strictEqual(purgeData.success, true);
+
+    const workersAfterPurge = await prisma.worker.count();
+    const attAfterPurge = await prisma.attendance.count();
+    const payAfterPurge = await prisma.payment.count();
+    assert.strictEqual(workersAfterPurge, 0, 'All workers must be deleted');
+    assert.strictEqual(attAfterPurge, 0, 'All attendances must be deleted');
+    assert.strictEqual(payAfterPurge, 0, 'All payments must be deleted');
+
+    const ownerAfterPurge = await prisma.owner.count();
+    assert.strictEqual(ownerAfterPurge, 1, 'Owner account must remain intact');
+    console.log('✓ All workers and history successfully purged; owner profile preserved intact');
+
     console.log('\n======================================================');
-    console.log('🎉 ALL 11 PHASE 2 AUTOMATED TEST SCENARIOS PASSED! 🎉');
+    console.log('🎉 ALL 12 PHASE 2 AUTOMATED TEST SCENARIOS PASSED! 🎉');
     console.log('======================================================\n');
   } finally {
     if (server) {

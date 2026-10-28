@@ -187,3 +187,52 @@ export async function unarchiveWorker(req: Request, res: Response) {
     message: 'Ishchi qayta faollashtirildi',
   });
 }
+
+export async function deleteWorker(req: Request, res: Response) {
+  const { id } = req.params;
+
+  const existing = await prisma.worker.findUnique({ where: { id } });
+  if (!existing) {
+    return res.status(404).json({
+      success: false,
+      error: 'Ishchi topilmadi',
+    });
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.attendance.deleteMany({ where: { workerId: id } });
+    await tx.payment.deleteMany({ where: { workerId: id } });
+    await tx.worker.delete({ where: { id } });
+  });
+
+  return res.json({
+    success: true,
+    message: "Ishchi va uning barcha davomat/to'lov yozuvlari o'chirildi",
+  });
+}
+
+export async function purgeAllWorkersAndHistory(_req: Request, res: Response) {
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const attCount = await tx.attendance.deleteMany({});
+      const payCount = await tx.payment.deleteMany({});
+      const workerCount = await tx.worker.deleteMany({});
+      return {
+        attendances: attCount.count,
+        payments: payCount.count,
+        workers: workerCount.count,
+      };
+    });
+
+    return res.json({
+      success: true,
+      message: "Barcha ishchilar va tarix (davomat, to'lovlar) to'liq o'chirildi. Faqat egasi hisobi qoldirildi.",
+      data: result,
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      error: "Ma'lumotlarni o'chirishda xatolik yuz berdi: " + err.message,
+    });
+  }
+}

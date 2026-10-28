@@ -44,6 +44,8 @@ interface AppStateContextType {
   updateWorker: (id: string, input: WorkerUpdateInput) => Promise<void>;
   archiveWorker: (id: string) => Promise<void>;
   unarchiveWorker: (id: string) => Promise<void>;
+  deleteWorker: (id: string) => Promise<void>;
+  purgeAllWorkers: () => Promise<void>;
   financeSummaries: WorkerFinanceSummary[];
   financeOverview: WorkshopFinanceOverview;
   activeWorkers: Worker[];
@@ -410,6 +412,56 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  const deleteWorker = async (id: string) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      const res = await api.workers.delete(id);
+      if (res.success) {
+        setWorkers((prev) => prev.filter((w) => w.id !== id));
+        await refreshData();
+      }
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : "Ishchini o'chirishda xatolik";
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const purgeAllWorkers = async () => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      const res = await api.workers.purgeAll();
+      if (res.success) {
+        setWorkers([]);
+        setAttendances([]);
+        setDateAttendanceRecords([]);
+        setPayments([]);
+        setFinanceSummaries([]);
+        setFinanceOverview({
+          totalAccruedSalaries: 0,
+          totalPaymentsDistributed: 0,
+          totalPendingBalance: 0,
+          activeWorkerCount: 0,
+        });
+        await refreshData();
+      }
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : "Barcha ma'lumotlarni o'chirishda xatolik";
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
   const activeWorkers = workers.filter((w) => w.status === 'ACTIVE');
   const archivedWorkers = workers.filter((w) => w.status === 'ARCHIVED');
 
@@ -440,6 +492,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         updateWorker,
         archiveWorker,
         unarchiveWorker,
+        deleteWorker,
+        purgeAllWorkers,
         financeSummaries,
         financeOverview,
         activeWorkers,
