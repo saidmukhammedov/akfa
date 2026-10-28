@@ -129,8 +129,18 @@ async function request<T>(
   const data = contentType?.includes('application/json') ? await response.json() : null;
 
   if (!response.ok) {
+    const issueMessages =
+      data?.issues && Array.isArray(data.issues) && data.issues.length > 0
+        ? data.issues.map((i: any) => i.message).filter(Boolean).join('. ')
+        : null;
+
+    const errorMessage =
+      issueMessages ||
+      data?.error ||
+      `So'rov muvaffaqiyatsiz tugadi (${response.status})`;
+
     throw new ApiError(
-      data?.error || `So'rov muvaffaqiyatsiz tugadi (${response.status})`,
+      errorMessage,
       response.status,
       data?.code,
       data?.issues

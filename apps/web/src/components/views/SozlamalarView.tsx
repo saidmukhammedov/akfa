@@ -18,6 +18,7 @@ import {
   Pencil,
   Check,
   Trash2,
+  AlertCircle,
 } from 'lucide-react';
 
 export const SozlamalarView: React.FC = () => {
@@ -31,6 +32,7 @@ export const SozlamalarView: React.FC = () => {
     archiveWorker,
     unarchiveWorker,
     deleteWorker,
+    clearError,
   } = useAppState();
 
   const [activeSubTab, setActiveSubTab] = useState<'workers' | 'profile'>('workers');
@@ -50,6 +52,7 @@ export const SozlamalarView: React.FC = () => {
   const [workshopName, setWorkshopName] = useState(owner?.workshopName || '');
   const [fullName, setFullName] = useState(owner?.fullName || '');
   const [profileSuccessMsg, setProfileSuccessMsg] = useState(false);
+  const [profileErrorMsg, setProfileErrorMsg] = useState('');
   const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
 
   const openAddWorkerModal = () => {
@@ -59,6 +62,7 @@ export const SozlamalarView: React.FC = () => {
     setRole('usta');
     setDailyRate('200000');
     setWorkerFormError('');
+    clearError();
     setIsWorkerModalOpen(true);
   };
 
@@ -69,6 +73,7 @@ export const SozlamalarView: React.FC = () => {
     setRole(w.role);
     setDailyRate(String(w.dailyRate));
     setWorkerFormError('');
+    clearError();
     setIsWorkerModalOpen(true);
   };
 
@@ -78,7 +83,8 @@ export const SozlamalarView: React.FC = () => {
       setWorkerFormError("Ishchi ismini kiriting");
       return;
     }
-    const rateNum = Number(dailyRate);
+    const cleanRate = String(dailyRate).replace(/\s/g, '');
+    const rateNum = Number(cleanRate);
     if (isNaN(rateNum) || rateNum <= 0) {
       setWorkerFormError("Kunlik stavka 0 dan yuqori bo'lishi kerak");
       return;
@@ -114,6 +120,7 @@ export const SozlamalarView: React.FC = () => {
   const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingProfile(true);
+    setProfileErrorMsg('');
     try {
       await updateOwnerProfile({
         fullName,
@@ -123,7 +130,7 @@ export const SozlamalarView: React.FC = () => {
       setProfileSuccessMsg(true);
       setTimeout(() => setProfileSuccessMsg(false), 3000);
     } catch (err: any) {
-      console.error('Failed to update owner profile:', err);
+      setProfileErrorMsg(err.message || "Profilni saqlashda xatolik yuz berdi");
     } finally {
       setIsSubmittingProfile(false);
     }
@@ -330,6 +337,13 @@ export const SozlamalarView: React.FC = () => {
                 </div>
               )}
 
+              {profileErrorMsg && (
+                <div className="p-3.5 rounded-xl bg-absent-50 border border-absent-200 text-xs sm:text-sm text-absent-800 font-medium flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-absent-600 flex-shrink-0 mt-0.5" />
+                  <span className="flex-1">{profileErrorMsg}</span>
+                </div>
+              )}
+
               <Input
                 label={t.sozlamalar.workshopNameLabel}
                 value={workshopName}
@@ -400,8 +414,9 @@ export const SozlamalarView: React.FC = () => {
       >
         <form onSubmit={handleWorkerSubmit} className="space-y-4">
           {workerFormError && (
-            <div className="p-3 rounded-xl bg-absent-50 border border-absent-200 text-xs text-absent-700 font-medium">
-              {workerFormError}
+            <div className="p-3.5 rounded-xl bg-absent-50 border border-absent-200 text-xs sm:text-sm text-absent-800 font-medium flex items-start gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-absent-600 flex-shrink-0 mt-0.5" />
+              <span className="flex-1">{workerFormError}</span>
             </div>
           )}
 

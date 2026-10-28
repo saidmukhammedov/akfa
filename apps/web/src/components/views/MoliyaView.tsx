@@ -16,6 +16,7 @@ import {
   Banknote,
   Landmark,
   ArrowUpRight,
+  AlertCircle,
 } from 'lucide-react';
 
 export const MoliyaView: React.FC = () => {
@@ -59,12 +60,13 @@ export const MoliyaView: React.FC = () => {
 
   const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const numAmount = Number(amount);
+    const cleanAmount = String(amount).replace(/\s/g, '');
+    const numAmount = Number(cleanAmount);
     if (!selectedWorkerId) {
       setFormError('Ishchini tanlang');
       return;
     }
-    if (!numAmount || numAmount <= 0) {
+    if (!numAmount || isNaN(numAmount) || numAmount <= 0) {
       setFormError("To'lov summasi 0 dan katta bo'lishi kerak");
       return;
     }
@@ -287,8 +289,9 @@ export const MoliyaView: React.FC = () => {
       >
         <form onSubmit={handleRecordPayment} className="space-y-4">
           {formError && (
-            <div className="p-3 rounded-xl bg-absent-50 border border-absent-200 text-xs text-absent-700 font-medium">
-              {formError}
+            <div className="p-3.5 rounded-xl bg-absent-50 border border-absent-200 text-xs sm:text-sm text-absent-800 font-medium flex items-start gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-absent-600 flex-shrink-0 mt-0.5" />
+              <span className="flex-1">{formError}</span>
             </div>
           )}
 
