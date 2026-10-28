@@ -138,11 +138,73 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     fetchAttendanceForDate(selectedDate);
   }, [selectedDate, fetchAttendanceForDate]);
 
-  // Real API Mutations
+  // Real API Mutations with Optimistic Updates for Instant UI Responsiveness
   const markAttendance = async (workerId: string, status: AttendanceStatus, notes?: string) => {
-    if (isMutating) return;
-    setIsMutating(true);
-    setError(null);
+    // Snapshot previous state for instant rollback on error
+    const prevAttendances = attendances;
+    const prevDateRecords = dateAttendanceRecords;
+    const prevOverview = financeOverview;
+    const prevSummaries = financeSummaries;
+
+    const worker = workers.find((w) => w.id === workerId);
+    const workerRate = worker?.dailyRate || 0;
+
+    // 1. Optimistically update attendances immediately (0ms delay)
+    setAttendances((prev) => {
+      const idx = prev.findIndex((a) => a.workerId === workerId && a.date === selectedDate);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = {
+          ...updated[idx],
+          status,
+          notes: notes !== undefined ? (notes || null) : updated[idx].notes,
+          updatedAt: new Date().toISOString(),
+        };
+        return updated;
+      } else {
+        return [
+          ...prev,
+          {
+            id: `att-${workerId}-${selectedDate}`,
+            workerId,
+            date: selectedDate,
+            status,
+            rateSnapshot: workerRate,
+            notes: notes || null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+      }
+    });
+
+    // 2. Optimistically update dateAttendanceRecords immediately
+    setDateAttendanceRecords((prev) => {
+      const idx = prev.findIndex((r) => r.workerId === workerId);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = {
+          ...updated[idx],
+          status,
+          notes: notes !== undefined ? (notes || null) : updated[idx].notes,
+          isMarked: true,
+        };
+        return updated;
+      }
+      return prev;
+    });
+
+    // 3. Optimistically update financial overview
+    const existing = prevAttendances.find((a) => a.workerId === workerId && a.date === selectedDate);
+    const prevStatus = existing?.status ?? 'ABSENT';
+    if (prevStatus !== status) {
+      const delta = status === 'PRESENT' ? workerRate : -workerRate;
+      setFinanceOverview((prev) => ({
+        ...prev,
+        totalAccruedSalaries: Math.max(0, prev.totalAccruedSalaries + delta),
+        totalPendingBalance: prev.totalPendingBalance + delta,
+      }));
+    }
 
     try {
       await api.attendance.mark({
@@ -152,28 +214,61 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         notes: notes || null,
       });
 
-      // Refetch attendance and finance data to guarantee honest server state
-      await Promise.all([
-        fetchAttendanceForDate(selectedDate),
+      // Background reconcile with server calculations
+      Promise.all([
         api.finance.getOverview().then((res) => res.success && setFinanceOverview(res.data)),
         api.finance.getSummaries().then((res) => res.success && setFinanceSummaries(res.data)),
-      ]);
+      ]).catch((err) => {
+        console.warn('Background finance sync warning:', err);
+      });
     } catch (err: any) {
+      // Rollback to previous state on failure
+      setAttendances(prevAttendances);
+      setDateAttendanceRecords(prevDateRecords);
+      setFinanceOverview(prevOverview);
+      setFinanceSummaries(prevSummaries);
       const msg = err instanceof ApiError ? err.message : 'Davomatni saqlashda xatolik';
       setError(msg);
       throw err;
-    } finally {
-      setIsMutating(false);
     }
   };
 
   const bulkMarkAttendance = async (status: AttendanceStatus) => {
-    if (isMutating) return;
-    setIsMutating(true);
-    setError(null);
+    const prevAttendances = attendances;
+    const prevDateRecords = dateAttendanceRecords;
+    const prevOverview = financeOverview;
+    const prevSummaries = financeSummaries;
+
+    const active = workers.filter((w) => w.status === 'ACTIVE');
+
+    // Optimistically update all active workers immediately
+    setAttendances((prev) => {
+      const remaining = prev.filter(
+        (a) => !(a.date === selectedDate && active.some((w) => w.id === a.workerId))
+      );
+      const newRecords: AttendanceRecord[] = active.map((w) => {
+        const existing = prev.find((a) => a.workerId === w.id && a.date === selectedDate);
+        return {
+          id: existing ? existing.id : `att-${w.id}-${selectedDate}`,
+          workerId: w.id,
+          date: selectedDate,
+          status,
+          rateSnapshot: existing ? existing.rateSnapshot : w.dailyRate,
+          notes: existing?.notes || null,
+          createdAt: existing ? existing.createdAt : new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      });
+      return [...remaining, ...newRecords];
+    });
+
+    setDateAttendanceRecords((prev) =>
+      prev.map((r) =>
+        active.some((w) => w.id === r.workerId) ? { ...r, status, isMarked: true } : r
+      )
+    );
 
     try {
-      const active = workers.filter((w) => w.status === 'ACTIVE');
       const records = active.map((w) => ({
         workerId: w.id,
         status,
@@ -185,17 +280,20 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         records,
       });
 
-      await Promise.all([
-        fetchAttendanceForDate(selectedDate),
+      Promise.all([
         api.finance.getOverview().then((res) => res.success && setFinanceOverview(res.data)),
         api.finance.getSummaries().then((res) => res.success && setFinanceSummaries(res.data)),
-      ]);
+      ]).catch((err) => {
+        console.warn('Background finance sync warning:', err);
+      });
     } catch (err: any) {
+      setAttendances(prevAttendances);
+      setDateAttendanceRecords(prevDateRecords);
+      setFinanceOverview(prevOverview);
+      setFinanceSummaries(prevSummaries);
       const msg = err instanceof ApiError ? err.message : 'Barcha davomatni saqlashda xatolik';
       setError(msg);
       throw err;
-    } finally {
-      setIsMutating(false);
     }
   };
 

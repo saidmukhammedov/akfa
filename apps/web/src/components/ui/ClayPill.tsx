@@ -22,8 +22,10 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => onChange('PRESENT')}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-clay-pill text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-95 ${
+        onClick={() => {
+          if (!isPresent) onChange('PRESENT');
+        }}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-clay-pill text-xs sm:text-sm font-semibold transition-all duration-75 active:scale-95 cursor-pointer ${
           isPresent
             ? 'bg-present-600 text-white shadow-clay-btn border border-present-500/40'
             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
@@ -36,8 +38,10 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => onChange('ABSENT')}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-clay-pill text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-95 ${
+        onClick={() => {
+          if (isPresent) onChange('ABSENT');
+        }}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-clay-pill text-xs sm:text-sm font-semibold transition-all duration-75 active:scale-95 cursor-pointer ${
           !isPresent
             ? 'bg-absent-600 text-white shadow-clay-btn border border-absent-500/40'
             : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'

@@ -12,8 +12,9 @@ import {
   XCircle,
   TrendingUp,
   Receipt,
-  ArrowRight,
   Clock,
+  CalendarCheck,
+  CreditCard,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -49,23 +50,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
             {owner?.workshopName || t.app.title} — {formatDate(selectedDate, 'full')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:gap-3">
           <Button
             variant="primary"
-            size="md"
             onClick={() => onNavigate('davomat')}
-            className="flex-1 sm:flex-initial"
+            className="h-11 sm:h-10 px-3.5 sm:px-4 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 shadow-clay-btn transition-all active:scale-[0.98] w-full sm:w-auto"
           >
-            <span>{t.dashboard.quickDavomatBtn}</span>
-            <ArrowRight className="w-4 h-4" />
+            <CalendarCheck className="w-4 h-4 shrink-0 text-white" />
+            <span className="truncate">{t.dashboard.quickDavomatBtn}</span>
           </Button>
           <Button
             variant="secondary"
-            size="md"
             onClick={() => onNavigate('moliya')}
-            className="flex-1 sm:flex-initial"
+            className="h-11 sm:h-10 px-3.5 sm:px-4 text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 shadow-clay-btn border border-workshop-border transition-all active:scale-[0.98] w-full sm:w-auto"
           >
-            <span>{t.dashboard.quickPaymentBtn}</span>
+            <CreditCard className="w-4 h-4 shrink-0 text-slate-700" />
+            <span className="truncate">{t.dashboard.quickPaymentBtn}</span>
           </Button>
         </div>
       </div>

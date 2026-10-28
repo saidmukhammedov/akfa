@@ -51,7 +51,7 @@ export const uz = {
     monthlyAccrued: 'Hisoblangan maosh (oylik)',
     monthlyPaid: "To'langan summa (oylik)",
     outstandingBalance: 'Qoldiq toza qarz',
-    quickDavomatBtn: 'Davomatni belgilash',
+    quickDavomatBtn: 'Davomat belgilash',
     quickPaymentBtn: "To'lov kiritish",
     recentActivity: "So'nggi harakatlar",
     noRecentActivity: "Hozircha harakatlar tarixi yo'q",
