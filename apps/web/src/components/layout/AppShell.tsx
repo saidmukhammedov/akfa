@@ -14,14 +14,14 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeTab, onTabCh
   const { error, clearError } = useAppState();
 
   return (
-    <div className="relative min-h-screen flex flex-col text-workshop-text dark:text-slate-100 pb-32 sm:pb-16 overflow-x-hidden transition-colors">
-      {/* Dynamic ambient glowing light orbs behind the frosted glass surfaces */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-24 -left-24 w-[500px] h-[500px] rounded-full bg-blue-400/25 dark:bg-blue-600/15 blur-[120px]" />
-        <div className="absolute top-1/4 -right-20 w-[450px] h-[450px] rounded-full bg-indigo-400/20 dark:bg-indigo-600/15 blur-[130px]" />
-        <div className="absolute top-1/2 left-1/3 w-[400px] h-[400px] rounded-full bg-emerald-300/20 dark:bg-emerald-600/10 blur-[140px]" />
-        <div className="absolute -bottom-24 left-1/4 w-[550px] h-[550px] rounded-full bg-sky-300/25 dark:bg-sky-600/15 blur-[130px]" />
-        <div className="absolute bottom-1/4 -right-20 w-[420px] h-[420px] rounded-full bg-purple-300/20 dark:bg-purple-600/15 blur-[130px]" />
+    <div className="relative min-h-screen flex flex-col text-workshop-text dark:text-slate-100 pb-32 sm:pb-16 transition-colors">
+      {/* Dynamic ambient glowing light orbs behind the frosted glass surfaces (Isolated GPU compositor layer) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 transform-gpu">
+        <div className="absolute -top-24 -left-24 w-[500px] h-[500px] rounded-full bg-blue-400/25 dark:bg-blue-600/15 blur-[100px]" />
+        <div className="absolute top-1/4 -right-20 w-[450px] h-[450px] rounded-full bg-indigo-400/20 dark:bg-indigo-600/15 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/3 w-[400px] h-[400px] rounded-full bg-emerald-300/20 dark:bg-emerald-600/10 blur-[100px]" />
+        <div className="absolute -bottom-24 left-1/4 w-[550px] h-[550px] rounded-full bg-sky-300/25 dark:bg-sky-600/15 blur-[100px]" />
+        <div className="absolute bottom-1/4 -right-20 w-[420px] h-[420px] rounded-full bg-purple-300/20 dark:bg-purple-600/15 blur-[100px]" />
       </div>
 
       <div className="relative z-10 flex flex-col flex-1">

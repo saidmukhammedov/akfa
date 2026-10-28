@@ -46,7 +46,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
       </nav>
 
       {/* Mobile Navigation Bar (Floating Glass Island Dock above bottom edge) */}
-      <nav className="sm:hidden fixed bottom-3 left-3 right-3 z-50 bg-white/75 dark:bg-slate-900/85 backdrop-blur-3xl border border-white/85 dark:border-slate-800/90 rounded-3xl shadow-[0_12px_36px_rgba(15,23,42,0.14)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.6)] p-1.5 safe-area-pb">
+      <nav className="sm:hidden fixed bottom-3 left-3 right-3 z-50 bg-white/75 dark:bg-slate-900/85 backdrop-blur-3xl border border-white/85 dark:border-slate-800/90 rounded-3xl shadow-[0_12px_36px_rgba(15,23,42,0.14)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.6)] p-1.5 safe-area-pb transform-gpu">
         <div className="grid grid-cols-4 gap-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;

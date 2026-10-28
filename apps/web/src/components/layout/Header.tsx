@@ -12,7 +12,7 @@ export const Header: React.FC = () => {
   const { owner } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 bg-white/65 dark:bg-slate-900/80 backdrop-blur-2xl border-b border-white/70 dark:border-slate-800/80 shadow-[0_8px_25px_-5px_rgba(15,23,42,0.05)] transition-colors">
+    <header className="sticky top-0 z-40 bg-white/65 dark:bg-slate-900/80 backdrop-blur-2xl border-b border-white/70 dark:border-slate-800/80 shadow-[0_8px_25px_-5px_rgba(15,23,42,0.05)] transform-gpu transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-18 py-2">
           {/* Logo & Workshop Name */}

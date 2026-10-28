@@ -2,7 +2,7 @@ import { chromium } from 'file:///C:/Users/hp/.gemini/antigravity/scratch/UniTra
 import { spawn, execSync } from 'child_process';
 import path from 'path';
 
-const VITE_PORT = 4198;
+const VITE_PORT = 4210;
 const LOCAL_URL = `http://127.0.0.1:${VITE_PORT}`;
 const ARTIFACTS_DIR = 'C:/Users/hp/.gemini/antigravity/brain/8e4ae944-ffd0-41c7-b476-39b058d75850';
 

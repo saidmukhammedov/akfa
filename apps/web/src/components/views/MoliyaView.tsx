@@ -373,7 +373,7 @@ export const MoliyaView: React.FC = () => {
               return (
                 <div
                   key={p.id}
-                  className="p-3.5 sm:p-4 rounded-2xl glass-slot border border-white/70 dark:border-slate-800 hover:border-white dark:hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                  className="p-3.5 sm:p-4 rounded-2xl glass-slot border border-white/70 dark:border-slate-800 hover:border-white dark:hover:border-slate-700 transition-colors duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                 >
                   {/* Top row on mobile / Left column on desktop */}
                   <div className="flex items-center justify-between sm:justify-start gap-3 min-w-0 flex-1">
