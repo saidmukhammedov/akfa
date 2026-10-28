@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-workshop-bg text-workshop-text font-sans antialiased min-h-screen selection:bg-akfa-100 selection:text-akfa-900;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  /* Tactile claymorphic card */
+  .clay-surface {
+    @apply bg-workshop-surface border border-workshop-border rounded-clay shadow-clay-card transition-all duration-150;
+  }
+
+  /* Tactile button with depressed feedback */
+  .clay-interactive {
+    @apply transition-all duration-100 active:scale-[0.98] active:translate-y-0.5 select-none;
+  }
+
+  /* Attendance Pill Button - Present */
+  .clay-pill-present {
+    @apply shadow-clay-pill border border-present-500/30 bg-present-50 text-present-700 font-medium active:shadow-clay-pressed;
+  }
+
+  /* Attendance Pill Button - Absent */
+  .clay-pill-absent {
+    @apply shadow-clay-pill border border-absent-500/30 bg-absent-50 text-absent-700 font-medium active:shadow-clay-pressed;
+  }
+}

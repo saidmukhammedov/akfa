@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Owner {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  fullName     String
+  workshopName String   @default("AKFA Ustaxonasi")
+  language     String   @default("uz") // 'uz' | 'ru'
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("owners")
+}
+
+model Worker {
+  id          String        @id @default(uuid())
+  name        String
+  phone       String?
+  role        String        @default("usta") // 'usta' | 'shogird' | 'yordamchi' | 'ornatuvchi' | 'boshqa'
+  dailyRate   Int           // Daily wage rate in UZS (so'm)
+  status      String        @default("ACTIVE") // 'ACTIVE' | 'ARCHIVED'
+  archivedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  attendances Attendance[]
+  payments    Payment[]
+
+  @@index([status])
+  @@map("workers")
+}
+
+model Attendance {
+  id           String   @id @default(uuid())
+  workerId     String
+  worker       Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  date         String   // ISO YYYY-MM-DD format
+  status       String   @default("PRESENT") // 'PRESENT' | 'ABSENT'
+  rateSnapshot Int      // Historical snapshot of worker's daily rate on this attendance date
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([workerId, date])
+  @@index([date])
+  @@index([workerId])
+  @@map("attendances")
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  workerId      String
+  worker        Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  amount        Int      // Payment amount in UZS (so'm), supports partial payment
+  paymentDate   String   // ISO YYYY-MM-DD format
+  paymentMethod String   @default("CASH") // 'CASH' | 'CARD' | 'BANK_TRANSFER'
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([workerId])
+  @@index([paymentDate])
+  @@map("payments")
+}
