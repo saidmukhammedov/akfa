@@ -27,10 +27,10 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div className={`glass-clay-card ${paddingClasses[padding]} ${className}`}>
       {(title || action) && (
-        <div className="flex items-start justify-between gap-4 mb-5 pb-3.5 border-b border-white/60">
+        <div className="flex items-start justify-between gap-4 mb-5 pb-3.5 border-b border-white/60 dark:border-slate-800">
           <div>
-            {title && <h3 className="font-extrabold text-slate-900 text-base sm:text-xl tracking-tight">{title}</h3>}
-            {subtitle && <p className="text-xs text-slate-500 font-medium mt-0.5">{subtitle}</p>}
+            {title && <h3 className="font-extrabold text-slate-900 dark:text-white text-base sm:text-xl tracking-tight">{title}</h3>}
+            {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{subtitle}</p>}
           </div>
           {action && <div className="flex-shrink-0">{action}</div>}
         </div>

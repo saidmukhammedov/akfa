@@ -57,9 +57,19 @@ export const DavomatView: React.FC = () => {
     setSelectedDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
   };
 
-  const handleToggle = (workerId: string, newStatus: 'PRESENT' | 'ABSENT') => {
+  const handleToggle = (workerId: string, newStatus: 'PRESENT' | 'ABSENT', isHalf?: boolean) => {
     triggerSavedFeedback();
-    markAttendance(workerId, newStatus).catch(() => {
+    markAttendance(workerId, newStatus, undefined, isHalf).catch(() => {
+      // Error handled via AppStateContext
+    });
+  };
+
+  const handleHalfDayToggle = (workerId: string, isHalf: boolean) => {
+    triggerSavedFeedback();
+    const record = attendances.find(
+      (a) => a.workerId === workerId && a.date === selectedDate
+    );
+    markAttendance(workerId, 'PRESENT', record?.notes || undefined, isHalf).catch(() => {
       // Error handled via AppStateContext
     });
   };
@@ -223,6 +233,7 @@ export const DavomatView: React.FC = () => {
               (a) => a.workerId === worker.id && a.date === selectedDate
             );
             const currentStatus = record ? record.status : 'ABSENT';
+            const isHalfDay = Boolean(record?.isHalfDay);
             const rateSnapshot = record?.rateSnapshot ?? worker.dailyRate;
             const hasNotes = Boolean(record?.notes);
 
@@ -233,18 +244,23 @@ export const DavomatView: React.FC = () => {
               >
                 {/* Worker Information */}
                 <div className="flex items-center gap-4 min-w-0">
-                  <div className="clay-avatar w-12 h-12 rounded-2xl flex items-center justify-center font-black text-slate-800 text-base flex-shrink-0">
+                  <div className="clay-avatar w-12 h-12 rounded-2xl flex items-center justify-center font-black text-slate-800 dark:text-slate-100 text-base flex-shrink-0">
                     {worker.name.charAt(0)}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <h4 className="text-base font-black text-slate-900 truncate">
+                      <h4 className="text-base font-black text-slate-900 dark:text-white truncate">
                         {worker.name}
                       </h4>
                       <Badge role={worker.role} size="sm" />
+                      {currentStatus === 'PRESENT' && isHalfDay && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300/80 shadow-clay-pill">
+                          {t.davomat.halfDay || '0.5 kun'}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold mt-1">
-                      <span className="font-extrabold text-slate-800">
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+                      <span className="font-extrabold text-slate-800 dark:text-slate-200">
                         {formatCurrency(rateSnapshot)}
                       </span>
                       <span>&bull;</span>
@@ -257,7 +273,7 @@ export const DavomatView: React.FC = () => {
                       )}
                     </div>
                     {hasNotes && (
-                      <p className="text-xs font-bold text-amber-900 bg-gradient-to-b from-amber-50 to-amber-100 px-3 py-1 rounded-xl mt-1.5 border border-amber-200/90 inline-block shadow-clay-pill">
+                      <p className="text-xs font-bold text-amber-900 dark:text-amber-300 bg-gradient-to-b from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/40 px-3 py-1 rounded-xl mt-1.5 border border-amber-200/90 dark:border-amber-800/60 inline-block shadow-clay-pill">
                         Izoh: "{record?.notes}"
                       </p>
                     )}
@@ -265,14 +281,14 @@ export const DavomatView: React.FC = () => {
                 </div>
 
                 {/* Tactile Controls: Attendance Pill & Note Button */}
-                <div className="flex items-center justify-end gap-3 pt-1 sm:pt-0">
+                <div className="flex items-center justify-end gap-2.5 pt-1 sm:pt-0">
                   <button
                     type="button"
                     onClick={() => openNoteModal(worker.id, record?.notes)}
-                    className={`clay-interactive p-3 rounded-2xl border transition-all text-xs font-black flex items-center gap-1.5 shadow-clay-pill cursor-pointer ${
+                    className={`clay-interactive p-2.5 sm:p-3 rounded-2xl border transition-all text-xs font-black flex items-center gap-1.5 shadow-clay-pill cursor-pointer ${
                       hasNotes
-                        ? 'bg-amber-100 text-amber-900 border-amber-300'
-                        : 'bg-white/80 text-slate-600 border-white/95 hover:bg-white hover:text-slate-900'
+                        ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700'
+                        : 'bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-white/95 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'
                     }`}
                     title={t.davomat.addNote}
                   >
@@ -282,7 +298,9 @@ export const DavomatView: React.FC = () => {
 
                   <ClayAttendanceToggle
                     status={currentStatus}
-                    onChange={(newStatus) => handleToggle(worker.id, newStatus)}
+                    isHalfDay={isHalfDay}
+                    onChange={(newStatus, newHalf) => handleToggle(worker.id, newStatus, newHalf)}
+                    onHalfDayToggle={(newHalf) => handleHalfDayToggle(worker.id, newHalf)}
                   />
                 </div>
               </div>
@@ -293,12 +311,12 @@ export const DavomatView: React.FC = () => {
 
       {/* Note Modal (Ultra-Frosted Glass Clay Modal) */}
       {activeNoteWorkerId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-150">
-          <div className="bg-white/85 backdrop-blur-3xl rounded-[32px] p-7 max-w-md w-full shadow-[0_25px_60px_-15px_rgba(15,23,42,0.25)] border-2 border-white/90">
-            <h3 className="text-lg font-black text-slate-900 mb-1 tracking-tight">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="bg-white/85 dark:bg-slate-900/90 backdrop-blur-3xl rounded-[32px] p-7 max-w-md w-full shadow-[0_25px_60px_-15px_rgba(15,23,42,0.25)] border-2 border-white/90 dark:border-slate-700">
+            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1 tracking-tight">
               {t.davomat.addNote}
             </h3>
-            <p className="text-xs text-slate-500 mb-4 font-semibold">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-semibold">
               {activeWorkers.find((w) => w.id === activeNoteWorkerId)?.name} &bull; {formatDate(selectedDate)}
             </p>
             <textarea
@@ -306,7 +324,7 @@ export const DavomatView: React.FC = () => {
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
               placeholder={t.davomat.notePlaceholder}
-              className="w-full p-4 text-sm font-semibold bg-white/60 backdrop-blur-xl border border-white/85 rounded-2xl focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 focus:bg-white/95 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)] mb-5"
+              className="w-full p-4 text-sm font-semibold bg-white/60 dark:bg-slate-800/80 backdrop-blur-xl border border-white/85 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 focus:bg-white/95 dark:focus:bg-slate-800 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)] mb-5"
               autoFocus
             />
             <div className="flex items-center justify-end gap-3">

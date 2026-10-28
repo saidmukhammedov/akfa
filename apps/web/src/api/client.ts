@@ -247,19 +247,20 @@ export const api = {
             dailyRate: number;
             status: AttendanceStatus;
             rateSnapshot: number;
+            isHalfDay?: boolean;
             notes: string | null;
             isMarked: boolean;
           }>;
         };
       }>(`/attendance?date=${date}`),
-    mark: async (payload: { workerId: string; date: string; status: AttendanceStatus; notes?: string | null }) =>
+    mark: async (payload: { workerId: string; date: string; status: AttendanceStatus; isHalfDay?: boolean; rateSnapshot?: number; notes?: string | null }) =>
       request<{ success: boolean; data: AttendanceRecord; message: string }>('/attendance/mark', {
         method: 'POST',
         body: JSON.stringify(payload),
       }),
     bulkMark: async (payload: {
       date: string;
-      records: Array<{ workerId: string; status: AttendanceStatus; notes?: string | null }>;
+      records: Array<{ workerId: string; status: AttendanceStatus; isHalfDay?: boolean; rateSnapshot?: number; notes?: string | null }>;
     }) =>
       request<{ success: boolean; message: string }>('/attendance/bulk', {
         method: 'POST',

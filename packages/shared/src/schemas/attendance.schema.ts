@@ -6,12 +6,16 @@ export const markAttendanceSchema = z.object({
   workerId: z.string().min(1, { message: "Ishchi tanlanishi shart" }),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Sana formati noto'g'ri (YYYY-MM-DD)" }),
   status: attendanceStatusEnum,
+  isHalfDay: z.boolean().optional(),
+  rateSnapshot: z.number().positive().optional(),
   notes: z.string().max(255, { message: "Izoh 255 belgidan oshmasligi kerak" }).optional().nullable(),
 });
 
 export const bulkAttendanceItemSchema = z.object({
   workerId: z.string().min(1),
   status: attendanceStatusEnum,
+  isHalfDay: z.boolean().optional(),
+  rateSnapshot: z.number().positive().optional(),
   notes: z.string().max(255).optional().nullable(),
 });
 

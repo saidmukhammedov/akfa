@@ -16,6 +16,17 @@
     background-attachment: fixed;
     -webkit-tap-highlight-color: transparent;
   }
+
+  .dark body {
+    @apply text-slate-100 selection:bg-blue-900 selection:text-white;
+    background-color: #0b1120;
+    background-image:
+      radial-gradient(circle at 8% 12%, rgba(30, 58, 138, 0.45) 0px, transparent 45%),
+      radial-gradient(circle at 92% 16%, rgba(67, 56, 202, 0.38) 0px, transparent 45%),
+      radial-gradient(circle at 50% 52%, rgba(6, 78, 59, 0.22) 0px, transparent 48%),
+      radial-gradient(circle at 20% 85%, rgba(49, 46, 129, 0.42) 0px, transparent 45%),
+      radial-gradient(circle at 85% 88%, rgba(30, 41, 59, 0.6) 0px, transparent 40%);
+  }
 }
 
 @layer components {
@@ -44,6 +55,25 @@
       inset 0 -2px 3px 0 rgba(15, 23, 42, 0.04);
   }
 
+  .dark .glass-clay-card {
+    background: rgba(15, 23, 42, 0.74);
+    border: 1.5px solid rgba(255, 255, 255, 0.11);
+    box-shadow: 
+      0 20px 40px -10px rgba(0, 0, 0, 0.5),
+      0 8px 16px -6px rgba(0, 0, 0, 0.35),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -2px 3px 0 rgba(0, 0, 0, 0.5);
+  }
+
+  .dark .glass-clay-card:hover {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 
+      0 26px 50px -12px rgba(0, 0, 0, 0.6),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 3px 0 rgba(0, 0, 0, 0.5);
+  }
+
   /* Volumetric Clay Pill Slot (Recessed Frosted Groove) */
   .glass-slot {
     background: rgba(226, 232, 240, 0.6);
@@ -54,6 +84,15 @@
       inset 0 2px 6px 0 rgba(15, 23, 42, 0.12),
       inset 0 1px 2px 0 rgba(15, 23, 42, 0.08),
       0 1px 2px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .dark .glass-slot {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1.5px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 
+      inset 0 2px 6px 0 rgba(0, 0, 0, 0.45),
+      inset 0 1px 2px 0 rgba(0, 0, 0, 0.3),
+      0 1px 2px 0 rgba(255, 255, 255, 0.06);
   }
 
   /* Tactile 3D Clay Button Interactive State */
@@ -74,5 +113,14 @@
       0 8px 18px -4px rgba(15, 23, 42, 0.1),
       inset 0 2px 3px 0 rgba(255, 255, 255, 1),
       inset 0 -2px 3px 0 rgba(15, 23, 42, 0.1);
+  }
+
+  .dark .clay-avatar {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 
+      0 8px 18px -4px rgba(0, 0, 0, 0.45),
+      inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.16),
+      inset 0 -2px 3px 0 rgba(0, 0, 0, 0.4);
   }
 }

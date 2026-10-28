@@ -21,6 +21,7 @@ interface DateAttendanceRecord {
   dailyRate: number;
   status: AttendanceStatus;
   rateSnapshot: number;
+  isHalfDay?: boolean;
   notes: string | null;
   isMarked: boolean;
 }
@@ -37,7 +38,7 @@ interface AppStateContextType {
   error: string | null;
   clearError: () => void;
   refreshData: () => Promise<void>;
-  markAttendance: (workerId: string, status: AttendanceStatus, notes?: string) => Promise<void>;
+  markAttendance: (workerId: string, status: AttendanceStatus, notes?: string, isHalfDay?: boolean) => Promise<void>;
   bulkMarkAttendance: (status: AttendanceStatus) => Promise<void>;
   recordPayment: (workerId: string, amount: number, paymentMethod: PaymentMethod, notes?: string) => Promise<void>;
   addWorker: (input: WorkerCreateInput) => Promise<void>;
@@ -90,6 +91,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             date,
             status: r.status,
             rateSnapshot: r.rateSnapshot,
+            isHalfDay: r.isHalfDay,
             notes: r.notes,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -141,7 +143,12 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [selectedDate, fetchAttendanceForDate]);
 
   // Real API Mutations with Optimistic Updates for Instant UI Responsiveness
-  const markAttendance = async (workerId: string, status: AttendanceStatus, notes?: string) => {
+  const markAttendance = async (
+    workerId: string,
+    status: AttendanceStatus,
+    notes?: string,
+    isHalfDay?: boolean
+  ) => {
     // Snapshot previous state for instant rollback on error
     const prevAttendances = attendances;
     const prevDateRecords = dateAttendanceRecords;
@@ -151,6 +158,11 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     const worker = workers.find((w) => w.id === workerId);
     const workerRate = worker?.dailyRate || 0;
 
+    const effectiveHalf = status === 'PRESENT' ? Boolean(isHalfDay) : false;
+    const effectiveRate = status === 'PRESENT'
+      ? (effectiveHalf ? Math.round(workerRate / 2) : workerRate)
+      : workerRate;
+
     // 1. Optimistically update attendances immediately (0ms delay)
     setAttendances((prev) => {
       const idx = prev.findIndex((a) => a.workerId === workerId && a.date === selectedDate);
@@ -159,6 +171,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         updated[idx] = {
           ...updated[idx],
           status,
+          isHalfDay: effectiveHalf,
+          rateSnapshot: effectiveRate,
           notes: notes !== undefined ? (notes || null) : updated[idx].notes,
           updatedAt: new Date().toISOString(),
         };
@@ -171,7 +185,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             workerId,
             date: selectedDate,
             status,
-            rateSnapshot: workerRate,
+            isHalfDay: effectiveHalf,
+            rateSnapshot: effectiveRate,
             notes: notes || null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -188,6 +203,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         updated[idx] = {
           ...updated[idx],
           status,
+          isHalfDay: effectiveHalf,
+          rateSnapshot: effectiveRate,
           notes: notes !== undefined ? (notes || null) : updated[idx].notes,
           isMarked: true,
         };
@@ -198,9 +215,10 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     // 3. Optimistically update financial overview
     const existing = prevAttendances.find((a) => a.workerId === workerId && a.date === selectedDate);
-    const prevStatus = existing?.status ?? 'ABSENT';
-    if (prevStatus !== status) {
-      const delta = status === 'PRESENT' ? workerRate : -workerRate;
+    const prevEarned = existing?.status === 'PRESENT' ? (existing.rateSnapshot || workerRate) : 0;
+    const newEarned = status === 'PRESENT' ? effectiveRate : 0;
+    const delta = newEarned - prevEarned;
+    if (delta !== 0) {
       setFinanceOverview((prev) => ({
         ...prev,
         totalAccruedSalaries: Math.max(0, prev.totalAccruedSalaries + delta),
@@ -213,6 +231,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         workerId,
         date: selectedDate,
         status,
+        isHalfDay: effectiveHalf,
+        rateSnapshot: status === 'PRESENT' ? effectiveRate : undefined,
         notes: notes || null,
       });
 

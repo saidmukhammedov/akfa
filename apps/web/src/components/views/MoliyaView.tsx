@@ -93,8 +93,8 @@ export const MoliyaView: React.FC = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{t.moliya.title}</h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">{t.moliya.subtitle}</p>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.moliya.title}</h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1">{t.moliya.subtitle}</p>
         </div>
         <Button
           variant="primary"
@@ -110,69 +110,167 @@ export const MoliyaView: React.FC = () => {
       {/* Financial Overview Cards (3 Frosted Glass Pods) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="glass-clay-card p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 dark:bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {t.dashboard.monthlyAccrued}
             </span>
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200/90 shadow-clay-pill flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-emerald-600 stroke-[2.4]" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/60 dark:to-emerald-900/40 border border-emerald-200/90 dark:border-emerald-800/60 shadow-clay-pill flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900 truncate tracking-tight">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white truncate tracking-tight">
             {formatCurrency(financeOverview.totalAccruedSalaries)}
           </div>
-          <p className="text-xs text-slate-500 font-semibold mt-2.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-2.5">
             Davomat va kunlik stavkalar asosida
           </p>
         </div>
 
         <div className="glass-clay-card p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-400/10 dark:bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {t.dashboard.monthlyPaid}
             </span>
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200/90 shadow-clay-pill flex items-center justify-center">
-              <Receipt className="w-5 h-5 text-akfa-600 stroke-[2.4]" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-50 to-sky-100 dark:from-sky-950/60 dark:to-sky-900/40 border border-sky-200/90 dark:border-sky-800/60 shadow-clay-pill flex items-center justify-center">
+              <Receipt className="w-5 h-5 text-akfa-600 dark:text-blue-400 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900 truncate tracking-tight">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white truncate tracking-tight">
             {formatCurrency(financeOverview.totalPaymentsDistributed)}
           </div>
-          <p className="text-xs text-slate-500 font-semibold mt-2.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-2.5">
             Tarqatilgan ish haqi va avanslar
           </p>
         </div>
 
         <div className="glass-clay-card p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/15 dark:bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {t.dashboard.outstandingBalance}
             </span>
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200/90 shadow-clay-pill flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-amber-600 stroke-[2.4]" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/60 dark:to-amber-900/40 border border-amber-200/90 dark:border-amber-800/60 shadow-clay-pill flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-amber-600 dark:text-amber-400 stroke-[2.4]" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-amber-800 truncate tracking-tight">
+          <div className="text-2xl sm:text-3xl font-black text-amber-800 dark:text-amber-400 truncate tracking-tight">
             {formatCurrency(financeOverview.totalPendingBalance)}
           </div>
-          <p className="text-xs text-slate-500 font-semibold mt-2.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-2.5">
             Ishchilar oldidagi jami to'lanishi kerak bo'lgan qoldiq
           </p>
         </div>
       </div>
 
-      {/* Worker Financial Summaries Table */}
+      {/* Worker Financial Summaries Card & Table */}
       <Card
         title={t.moliya.title}
         subtitle="Davomat jurnali asosida hisoblangan maoshlar va to'lovlar balansi"
         padding="none"
       >
-        <div className="overflow-x-auto">
+        {/* Mobile View: High-clarity Claymorphism Worker Cards */}
+        <div className="block md:hidden divide-y divide-white/70 dark:divide-slate-800 p-3 space-y-3">
+          {financeSummaries.map((summary) => {
+            const isOverpaid = summary.balanceOwed < 0;
+            return (
+              <div
+                key={summary.workerId}
+                className="p-4 rounded-2xl glass-slot space-y-3 border border-white/70 dark:border-slate-800 first:pt-4"
+              >
+                {/* Header: Name, Role, Action */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="clay-avatar w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-800 dark:text-slate-100 text-sm flex-shrink-0">
+                      {summary.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-black text-slate-900 dark:text-white text-sm truncate">
+                          {summary.name}
+                        </span>
+                        <Badge role={summary.role} size="sm" />
+                        {summary.status === 'ARCHIVED' && (
+                          <span className="text-[10px] font-black text-slate-500 bg-slate-200/70 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-300/60 dark:border-slate-700">
+                            Arxiv
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                        {t.moliya.tableDailyRate}: {formatCurrency(summary.currentDailyRate)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => openPaymentModal(summary.workerId)}
+                    className="text-xs font-black rounded-xl shrink-0 px-3 py-1.5 h-9"
+                  >
+                    <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span>{t.moliya.recordPaymentBtn}</span>
+                  </Button>
+                </div>
+
+                {/* 2x2 Financial Metrics Grid */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5">
+                      {t.moliya.tableDaysWorked}
+                    </span>
+                    <span className="font-black text-slate-900 dark:text-white text-sm">
+                      {summary.daysWorked} kun
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5">
+                      {t.moliya.tableAccrued}
+                    </span>
+                    <span className="font-black text-slate-900 dark:text-white text-sm">
+                      {formatCurrency(summary.totalAccruedSalary)}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5">
+                      {t.moliya.tablePaid}
+                    </span>
+                    <span className="font-black text-slate-700 dark:text-slate-300 text-sm">
+                      {formatCurrency(summary.totalPaid)}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5">
+                      {t.moliya.tableBalance}
+                    </span>
+                    {isOverpaid ? (
+                      <span className="font-black text-blue-700 dark:text-blue-300 text-xs">
+                        {formatCurrency(Math.abs(summary.balanceOwed))} avans
+                      </span>
+                    ) : summary.balanceOwed === 0 ? (
+                      <span className="font-bold text-slate-500 text-xs">
+                        0 so'm
+                      </span>
+                    ) : (
+                      <span className="font-black text-amber-700 dark:text-amber-400 text-xs">
+                        {formatCurrency(summary.balanceOwed)} qarz
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop / Tablet View: Full Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-200/40 backdrop-blur-md text-xs font-black text-slate-600 uppercase tracking-wider border-b border-white/80">
+            <thead className="bg-slate-200/40 dark:bg-slate-800/60 backdrop-blur-md text-xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider border-b border-white/80 dark:border-slate-700">
               <tr>
                 <th className="py-3.5 px-5">{t.moliya.tableWorker}</th>
                 <th className="py-3.5 px-5">{t.moliya.tableDailyRate}</th>
@@ -183,45 +281,45 @@ export const MoliyaView: React.FC = () => {
                 <th className="py-3.5 px-5 text-right">{t.common.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/60">
+            <tbody className="divide-y divide-white/60 dark:divide-slate-800/80">
               {financeSummaries.map((summary) => {
                 const isOverpaid = summary.balanceOwed < 0;
                 return (
-                  <tr key={summary.workerId} className="hover:bg-white/50 transition-colors">
+                  <tr key={summary.workerId} className="hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="py-4 px-5">
                       <div className="flex items-center gap-2.5">
-                        <span className="font-black text-slate-900">{summary.name}</span>
+                        <span className="font-black text-slate-900 dark:text-white">{summary.name}</span>
                         <Badge role={summary.role} size="sm" />
                         {summary.status === 'ARCHIVED' && (
-                          <span className="text-[10px] font-black text-slate-500 bg-slate-200/70 backdrop-blur-md px-2 py-0.5 rounded-full border border-slate-300/60 shadow-clay-pill">
+                          <span className="text-[10px] font-black text-slate-500 bg-slate-200/70 dark:bg-slate-800 backdrop-blur-md px-2 py-0.5 rounded-full border border-slate-300/60 dark:border-slate-700 shadow-clay-pill">
                             Arxiv
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="py-4 px-5 text-slate-600 font-bold">
+                    <td className="py-4 px-5 text-slate-600 dark:text-slate-300 font-bold">
                       {formatCurrency(summary.currentDailyRate)}
                     </td>
-                    <td className="py-4 px-5 font-black text-slate-900">
+                    <td className="py-4 px-5 font-black text-slate-900 dark:text-white">
                       {summary.daysWorked} kun
                     </td>
-                    <td className="py-4 px-5 font-black text-slate-900">
+                    <td className="py-4 px-5 font-black text-slate-900 dark:text-white">
                       {formatCurrency(summary.totalAccruedSalary)}
                     </td>
-                    <td className="py-4 px-5 text-slate-600 font-bold">
+                    <td className="py-4 px-5 text-slate-600 dark:text-slate-300 font-bold">
                       {formatCurrency(summary.totalPaid)}
                     </td>
                     <td className="py-4 px-5 text-right">
                       {isOverpaid ? (
-                        <span className="text-xs font-black text-blue-800 bg-gradient-to-b from-blue-50 to-blue-100 px-3 py-1 rounded-full border border-blue-200/90 shadow-clay-pill">
+                        <span className="text-xs font-black text-blue-800 dark:text-blue-300 bg-gradient-to-b from-blue-50 to-blue-100 dark:from-blue-950/60 dark:to-blue-900/40 px-3 py-1 rounded-full border border-blue-200/90 dark:border-blue-800/80 shadow-clay-pill">
                           {formatCurrency(Math.abs(summary.balanceOwed))} avans
                         </span>
                       ) : summary.balanceOwed === 0 ? (
-                        <span className="text-xs font-bold text-slate-500">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                           0 so'm
                         </span>
                       ) : (
-                        <span className="font-black text-amber-800">
+                        <span className="font-black text-amber-800 dark:text-amber-400">
                           {formatCurrency(summary.balanceOwed)}
                         </span>
                       )}

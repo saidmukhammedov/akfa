@@ -75,7 +75,14 @@ export async function getWorkerFinanceSummaries(_req: Request, res: Response) {
   });
 
   const summaries = workers.map((w) => {
-    const daysWorked = w.attendances.length;
+    const daysWorked = w.attendances.reduce((sum, a) => {
+      const snap = Number(a.rateSnapshot);
+      const daily = Number(w.dailyRate);
+      if (daily > 0 && snap <= Math.round(daily * 0.6)) {
+        return sum + 0.5;
+      }
+      return sum + 1;
+    }, 0);
     // Salary strictly calculated from attendance rate snapshots
     const totalAccruedSalary = w.attendances.reduce(
       (sum, a) => sum.add(a.rateSnapshot),
@@ -139,6 +146,15 @@ export async function getWorkerFinanceDetails(req: Request, res: Response) {
   );
   const balanceOwed = totalAccruedSalary.sub(totalPaid);
 
+  const daysWorked = presentAttendances.reduce((sum, a) => {
+    const snap = Number(a.rateSnapshot);
+    const daily = Number(worker.dailyRate);
+    if (daily > 0 && snap <= Math.round(daily * 0.6)) {
+      return sum + 0.5;
+    }
+    return sum + 1;
+  }, 0);
+
   return res.json({
     success: true,
     data: {
@@ -149,16 +165,22 @@ export async function getWorkerFinanceDetails(req: Request, res: Response) {
         updatedAt: worker.updatedAt.toISOString(),
         archivedAt: worker.archivedAt?.toISOString() || null,
       },
-      daysWorked: presentAttendances.length,
+      daysWorked,
       totalAccruedSalary: totalAccruedSalary.toNumber(),
       totalPaid: totalPaid.toNumber(),
       balanceOwed: balanceOwed.toNumber(),
-      attendances: worker.attendances.map((a) => ({
-        ...a,
-        rateSnapshot: Number(a.rateSnapshot),
-        createdAt: a.createdAt.toISOString(),
-        updatedAt: a.updatedAt.toISOString(),
-      })),
+      attendances: worker.attendances.map((a) => {
+        const snap = Number(a.rateSnapshot);
+        const daily = Number(worker.dailyRate);
+        const isHalfDay = a.status === 'PRESENT' && daily > 0 && snap <= Math.round(daily * 0.6);
+        return {
+          ...a,
+          rateSnapshot: snap,
+          isHalfDay,
+          createdAt: a.createdAt.toISOString(),
+          updatedAt: a.updatedAt.toISOString(),
+        };
+      }),
       payments: worker.payments.map((p) => ({
         ...p,
         amount: Number(p.amount),

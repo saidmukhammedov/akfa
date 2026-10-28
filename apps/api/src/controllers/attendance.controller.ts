@@ -21,14 +21,18 @@ export async function getAttendanceByDate(req: Request, res: Response) {
 
   const records = activeWorkers.map((worker) => {
     const existing = attendanceMap.get(worker.id);
+    const workerDailyRate = Number(worker.dailyRate);
+    const rateSnapshot = existing ? Number(existing.rateSnapshot) : workerDailyRate;
+    const isHalfDay = existing ? (Number(existing.rateSnapshot) <= Math.round(workerDailyRate * 0.6) && existing.status === 'PRESENT') : false;
 
     return {
       workerId: worker.id,
       workerName: worker.name,
       workerRole: worker.role,
-      dailyRate: Number(worker.dailyRate),
+      dailyRate: workerDailyRate,
       status: existing ? (existing.status as AttendanceStatus) : ('ABSENT' as AttendanceStatus),
-      rateSnapshot: existing ? Number(existing.rateSnapshot) : Number(worker.dailyRate),
+      rateSnapshot,
+      isHalfDay,
       notes: existing ? existing.notes : null,
       isMarked: Boolean(existing),
       updatedAt: existing ? existing.updatedAt.toISOString() : null,
@@ -51,7 +55,7 @@ export async function getAttendanceByDate(req: Request, res: Response) {
 }
 
 export async function markAttendance(req: Request, res: Response) {
-  const { workerId, date, status, notes } = req.body;
+  const { workerId, date, status, notes, isHalfDay, rateSnapshot } = req.body;
 
   const worker = await prisma.worker.findUnique({ where: { id: workerId } });
   if (!worker) {
@@ -59,6 +63,18 @@ export async function markAttendance(req: Request, res: Response) {
       success: false,
       error: 'Ishchi topilmadi',
     });
+  }
+
+  const workerRate = Number(worker.dailyRate);
+  let effectiveRate: any = worker.dailyRate;
+  if (status === 'PRESENT') {
+    if (isHalfDay === true || (rateSnapshot !== undefined && rateSnapshot <= Math.round(workerRate * 0.6))) {
+      effectiveRate = rateSnapshot !== undefined ? rateSnapshot : Math.round(workerRate / 2);
+    } else if (rateSnapshot !== undefined) {
+      effectiveRate = rateSnapshot;
+    } else {
+      effectiveRate = worker.dailyRate;
+    }
   }
 
   // Concurrency-safe atomic upsert enforcing one record per worker per date
@@ -71,13 +87,14 @@ export async function markAttendance(req: Request, res: Response) {
     },
     update: {
       status,
+      rateSnapshot: effectiveRate,
       notes: notes !== undefined ? notes : undefined,
     },
     create: {
       workerId,
       date,
       status,
-      rateSnapshot: worker.dailyRate, // Snapshot worker daily rate at creation
+      rateSnapshot: effectiveRate, // Snapshot worker daily rate or half day rate
       notes: notes || null,
     },
   });
@@ -87,6 +104,7 @@ export async function markAttendance(req: Request, res: Response) {
     data: {
       ...record,
       rateSnapshot: Number(record.rateSnapshot),
+      isHalfDay: status === 'PRESENT' && Number(record.rateSnapshot) <= Math.round(workerRate * 0.6),
       createdAt: record.createdAt.toISOString(),
       updatedAt: record.updatedAt.toISOString(),
     },
@@ -110,6 +128,18 @@ export async function bulkMarkAttendance(req: Request, res: Response) {
       const worker = await tx.worker.findUnique({ where: { id: item.workerId } });
       if (!worker) continue;
 
+      const workerRate = Number(worker.dailyRate);
+      let effectiveRate: any = worker.dailyRate;
+      if (item.status === 'PRESENT') {
+        if (item.isHalfDay === true || (item.rateSnapshot !== undefined && item.rateSnapshot <= Math.round(workerRate * 0.6))) {
+          effectiveRate = item.rateSnapshot !== undefined ? item.rateSnapshot : Math.round(workerRate / 2);
+        } else if (item.rateSnapshot !== undefined) {
+          effectiveRate = item.rateSnapshot;
+        } else {
+          effectiveRate = worker.dailyRate;
+        }
+      }
+
       await tx.attendance.upsert({
         where: {
           workerId_date: {
@@ -119,13 +149,14 @@ export async function bulkMarkAttendance(req: Request, res: Response) {
         },
         update: {
           status: item.status,
+          rateSnapshot: effectiveRate,
           notes: item.notes !== undefined ? item.notes : undefined,
         },
         create: {
           workerId: item.workerId,
           date,
           status: item.status,
-          rateSnapshot: worker.dailyRate,
+          rateSnapshot: effectiveRate,
           notes: item.notes || null,
         },
       });

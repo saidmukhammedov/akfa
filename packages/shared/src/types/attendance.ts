@@ -6,6 +6,7 @@ export interface AttendanceRecord {
   date: string; // ISO date format YYYY-MM-DD
   status: AttendanceStatus;
   rateSnapshot: number; // Historical rate snapshot in UZS for this day
+  isHalfDay?: boolean;
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -20,6 +21,8 @@ export interface MarkAttendanceInput {
   workerId: string;
   date: string; // YYYY-MM-DD
   status: AttendanceStatus;
+  isHalfDay?: boolean;
+  rateSnapshot?: number;
   notes?: string | null;
 }
 
@@ -28,6 +31,8 @@ export interface BulkAttendanceInput {
   records: Array<{
     workerId: string;
     status: AttendanceStatus;
+    isHalfDay?: boolean;
+    rateSnapshot?: number;
     notes?: string | null;
   }>;
 }

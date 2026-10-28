@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppStateProvider } from './context/AppStateContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { AppShell } from './components/layout/AppShell';
 import { TabId } from './components/layout/Navigation';
 import { DashboardView } from './components/views/DashboardView';
@@ -41,13 +42,15 @@ export const AppContent: React.FC = () => {
 
 export function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <AppStateProvider>
-          <AppContent />
-        </AppStateProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppStateProvider>
+            <AppContent />
+          </AppStateProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 

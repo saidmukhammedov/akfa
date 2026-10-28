@@ -8,6 +8,7 @@ import { Badge } from '../ui/Badge';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
 import { EmptyState } from '../ui/EmptyState';
+import { ThemeSwitcher } from '../layout/ThemeSwitcher';
 import { WorkerRole, Worker } from '@akfa/shared';
 import {
   Users,
@@ -152,13 +153,13 @@ export const SozlamalarView: React.FC = () => {
           onClick={() => setActiveSubTab('workers')}
           className={`flex items-center gap-2.5 px-5 py-2.5 text-xs sm:text-sm font-black rounded-xl transition-all duration-200 active:scale-95 cursor-pointer ${
             activeSubTab === 'workers'
-              ? 'bg-white text-akfa-700 shadow-clay-card border border-white'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+              ? 'bg-white dark:bg-slate-800 text-akfa-700 dark:text-blue-300 shadow-clay-card border border-white dark:border-slate-700'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-800/40'
           }`}
         >
           <Users className="w-4 h-4 stroke-[2.4]" />
           <span>{t.sozlamalar.tabWorkers}</span>
-          <span className="ml-1 text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-black shadow-clay-pill">
+          <span className="ml-1 text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-black shadow-clay-pill">
             {activeWorkers.length}
           </span>
         </button>
@@ -167,8 +168,8 @@ export const SozlamalarView: React.FC = () => {
           onClick={() => setActiveSubTab('profile')}
           className={`flex items-center gap-2.5 px-5 py-2.5 text-xs sm:text-sm font-black rounded-xl transition-all duration-200 active:scale-95 cursor-pointer ${
             activeSubTab === 'profile'
-              ? 'bg-white text-akfa-700 shadow-clay-card border border-white'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+              ? 'bg-white dark:bg-slate-800 text-akfa-700 dark:text-blue-300 shadow-clay-card border border-white dark:border-slate-700'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-800/40'
           }`}
         >
           <Building2 className="w-4 h-4 stroke-[2.4]" />
@@ -186,8 +187,8 @@ export const SozlamalarView: React.FC = () => {
                 onClick={() => setWorkerListFilter('ACTIVE')}
                 className={`clay-interactive px-4 py-2 text-xs font-black rounded-xl cursor-pointer ${
                   workerListFilter === 'ACTIVE'
-                    ? 'bg-white text-akfa-700 shadow-clay-card border border-white'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-800 text-akfa-700 dark:text-blue-300 shadow-clay-card border border-white dark:border-slate-700'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {t.sozlamalar.activeWorkersTab} ({activeWorkers.length})
@@ -196,8 +197,8 @@ export const SozlamalarView: React.FC = () => {
                 onClick={() => setWorkerListFilter('ARCHIVED')}
                 className={`clay-interactive px-4 py-2 text-xs font-black rounded-xl cursor-pointer ${
                   workerListFilter === 'ARCHIVED'
-                    ? 'bg-white text-akfa-700 shadow-clay-card border border-white'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-800 text-akfa-700 dark:text-blue-300 shadow-clay-card border border-white dark:border-slate-700'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {t.sozlamalar.archivedWorkersTab} ({archivedWorkers.length})
@@ -228,25 +229,28 @@ export const SozlamalarView: React.FC = () => {
               }
             />
           ) : (
-            <Card padding="none">
-              <div className="divide-y divide-white/60">
-                {displayedWorkers.map((worker) => (
-                  <div
-                    key={worker.id}
-                    className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="clay-avatar w-12 h-12 rounded-2xl flex items-center justify-center font-black text-slate-800 text-base flex-shrink-0">
+            <div className="space-y-4">
+              {displayedWorkers.map((worker) => (
+                <div
+                  key={worker.id}
+                  className="glass-clay-card p-5 sm:p-6 flex flex-col gap-4 group"
+                >
+                  {/* Top: Avatar, Name, Badges, Rate, Phone & Desktop Actions */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+                      <div className="clay-avatar w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center font-black text-slate-800 dark:text-slate-100 text-base sm:text-lg flex-shrink-0">
                         {worker.name.charAt(0)}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2.5 flex-wrap">
-                          <h4 className="text-base font-black text-slate-900">{worker.name}</h4>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
+                            {worker.name}
+                          </h4>
                           <Badge role={worker.role} size="sm" />
                           <Badge status={worker.status} size="sm" />
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold mt-1">
-                          <span className="font-extrabold text-slate-800">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1 flex-wrap">
+                          <span className="font-extrabold text-slate-800 dark:text-slate-200">
                             {formatCurrency(worker.dailyRate)}
                           </span>
                           <span>&bull;</span>
@@ -254,14 +258,15 @@ export const SozlamalarView: React.FC = () => {
                           {worker.phone && (
                             <>
                               <span>&bull;</span>
-                              <span>{worker.phone}</span>
+                              <span className="text-slate-700 dark:text-slate-300 font-bold">{worker.phone}</span>
                             </>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                    {/* Desktop Actions (Horizontal row) */}
+                    <div className="hidden sm:flex items-center gap-2 shrink-0">
                       <Button
                         variant="secondary"
                         size="sm"
@@ -281,7 +286,7 @@ export const SozlamalarView: React.FC = () => {
                               archiveWorker(worker.id);
                             }
                           }}
-                          className="text-xs font-black text-amber-800 hover:bg-amber-100/70 rounded-xl"
+                          className="text-xs font-black text-amber-800 dark:text-amber-400 hover:bg-amber-100/70 dark:hover:bg-amber-950/50 rounded-xl"
                         >
                           <Archive className="w-3.5 h-3.5 stroke-[2.4]" />
                           <span>{t.sozlamalar.archiveWorker}</span>
@@ -295,7 +300,7 @@ export const SozlamalarView: React.FC = () => {
                               unarchiveWorker(worker.id);
                             }
                           }}
-                          className="text-xs font-black text-emerald-800 hover:bg-emerald-100/70 rounded-xl"
+                          className="text-xs font-black text-emerald-800 dark:text-emerald-400 hover:bg-emerald-100/70 dark:hover:bg-emerald-950/50 rounded-xl"
                         >
                           <RotateCcw className="w-3.5 h-3.5 stroke-[2.4]" />
                           <span>{t.sozlamalar.unarchiveWorker}</span>
@@ -310,7 +315,7 @@ export const SozlamalarView: React.FC = () => {
                             deleteWorker(worker.id);
                           }
                         }}
-                        className="text-xs font-black text-rose-600 hover:bg-rose-100/70 rounded-xl"
+                        className="text-xs font-black text-rose-600 dark:text-rose-400 hover:bg-rose-100/70 dark:hover:bg-rose-950/50 rounded-xl"
                         title={t.common.delete}
                       >
                         <Trash2 className="w-3.5 h-3.5 stroke-[2.4]" />
@@ -318,9 +323,67 @@ export const SozlamalarView: React.FC = () => {
                       </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </Card>
+
+                  {/* Mobile Actions: 3 Balanced, Comfortable Touch Buttons */}
+                  <div className="grid grid-cols-3 gap-2 sm:hidden pt-3 border-t border-white/60 dark:border-slate-800">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => openEditWorkerModal(worker)}
+                      className="w-full justify-center text-xs font-black py-2.5 rounded-xl h-auto"
+                    >
+                      <Pencil className="w-3.5 h-3.5 stroke-[2.4]" />
+                      <span>{t.common.edit}</span>
+                    </Button>
+
+                    {worker.status === 'ACTIVE' ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm(t.sozlamalar.archiveWorkerConfirm)) {
+                            archiveWorker(worker.id);
+                          }
+                        }}
+                        className="w-full justify-center text-xs font-black py-2.5 rounded-xl h-auto text-amber-800 dark:text-amber-300 bg-amber-50/70 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/60"
+                      >
+                        <Archive className="w-3.5 h-3.5 stroke-[2.4]" />
+                        <span>{t.sozlamalar.archiveWorker}</span>
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm(t.sozlamalar.unarchiveWorkerConfirm)) {
+                            unarchiveWorker(worker.id);
+                          }
+                        }}
+                        className="w-full justify-center text-xs font-black py-2.5 rounded-xl h-auto text-emerald-800 dark:text-emerald-300 bg-emerald-50/70 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/60"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 stroke-[2.4]" />
+                        <span>{t.sozlamalar.unarchiveWorker}</span>
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (window.confirm(`"${worker.name}" ishchisini butunlay o'chirishni tasdiqlaysizmi?`)) {
+                          deleteWorker(worker.id);
+                        }
+                      }}
+                      className="w-full justify-center text-xs font-black py-2.5 rounded-xl h-auto text-rose-600 dark:text-rose-300 bg-rose-50/70 dark:bg-rose-950/50 border border-rose-200/80 dark:border-rose-800/60"
+                      title={t.common.delete}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 stroke-[2.4]" />
+                      <span>{t.common.delete}</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -360,7 +423,7 @@ export const SozlamalarView: React.FC = () => {
 
               {/* Language Selection Setting */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                   {t.sozlamalar.languagePreference}
                 </label>
                 <div className="grid grid-cols-2 gap-3.5">
@@ -369,12 +432,12 @@ export const SozlamalarView: React.FC = () => {
                     onClick={() => setLang('uz')}
                     className={`clay-interactive p-4 text-left rounded-2xl border text-xs transition-all cursor-pointer ${
                       lang === 'uz'
-                        ? 'border-akfa-400 bg-gradient-to-b from-blue-50 to-blue-100 text-akfa-950 font-black shadow-clay-card'
-                        : 'border-white/80 bg-white/60 text-slate-700 hover:bg-white'
+                        ? 'border-akfa-400 dark:border-blue-500 bg-gradient-to-b from-blue-50 to-blue-100 dark:from-blue-950/70 dark:to-blue-900/50 text-akfa-950 dark:text-blue-100 font-black shadow-clay-card'
+                        : 'border-white/80 dark:border-slate-700 bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
                     }`}
                   >
                     <span className="block font-black text-sm">O'zbekcha (Lotin)</span>
-                    <span className="text-[11px] text-slate-500 font-semibold mt-1 block">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-1 block">
                       Asosiy tizim tili
                     </span>
                   </button>
@@ -384,19 +447,27 @@ export const SozlamalarView: React.FC = () => {
                     onClick={() => setLang('ru')}
                     className={`clay-interactive p-4 text-left rounded-2xl border text-xs transition-all cursor-pointer ${
                       lang === 'ru'
-                        ? 'border-akfa-400 bg-gradient-to-b from-blue-50 to-blue-100 text-akfa-950 font-black shadow-clay-card'
-                        : 'border-white/80 bg-white/60 text-slate-700 hover:bg-white'
+                        ? 'border-akfa-400 dark:border-blue-500 bg-gradient-to-b from-blue-50 to-blue-100 dark:from-blue-950/70 dark:to-blue-900/50 text-akfa-950 dark:text-blue-100 font-black shadow-clay-card'
+                        : 'border-white/80 dark:border-slate-700 bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
                     }`}
                   >
                     <span className="block font-black text-sm">Русский язык</span>
-                    <span className="text-[11px] text-slate-500 font-semibold mt-1 block">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-1 block">
                       Интерфейс на русском
                     </span>
                   </button>
                 </div>
               </div>
 
-              <div className="pt-5 border-t border-white/60 flex justify-end">
+              {/* Theme Mode Preference Setting */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                  {t.sozlamalar.themePreference}
+                </label>
+                <ThemeSwitcher />
+              </div>
+
+              <div className="pt-5 border-t border-white/60 dark:border-slate-800 flex justify-end">
                 <Button type="submit" variant="primary" size="md" disabled={isSubmittingProfile} className="h-12 px-6 rounded-2xl">
                   {isSubmittingProfile ? t.common.loading : t.sozlamalar.saveProfileBtn}
                 </Button>
