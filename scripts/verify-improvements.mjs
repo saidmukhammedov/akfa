@@ -2,7 +2,7 @@ import { chromium } from 'file:///C:/Users/hp/.gemini/antigravity/scratch/UniTra
 import { spawn, execSync } from 'child_process';
 import path from 'path';
 
-const VITE_PORT = 4195;
+const VITE_PORT = 4198;
 const LOCAL_URL = `http://127.0.0.1:${VITE_PORT}`;
 const ARTIFACTS_DIR = 'C:/Users/hp/.gemini/antigravity/brain/8e4ae944-ffd0-41c7-b476-39b058d75850';
 
@@ -316,6 +316,16 @@ async function main() {
       const darkMoliyaPaymentsScreenshot = `${ARTIFACTS_DIR}/dark_mode_moliya_payments.png`;
       await page.screenshot({ path: darkMoliyaPaymentsScreenshot, timeout: 8000 });
       console.log(`✓ Dark mode Moliya payments screenshot saved to ${darkMoliyaPaymentsScreenshot}`);
+
+      // 4. Dark Mode Sozlamalar
+      console.log('4. Capturing Dark Mode Sozlamalar...');
+      await page.getByRole('button', { name: 'Sozlamalar' }).last().click();
+      await page.waitForTimeout(400);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(400);
+      const darkSozlamalarScreenshot = `${ARTIFACTS_DIR}/dark_mode_sozlamalar.png`;
+      await page.screenshot({ path: darkSozlamalarScreenshot, timeout: 8000 });
+      console.log(`✓ Dark mode Sozlamalar screenshot saved to ${darkSozlamalarScreenshot}`);
 
       console.log('\n======================================================');
       console.log('🎉 ALL SCREENSHOTS SUCCESSFULLY CAPTURED! 🎉');

@@ -143,8 +143,8 @@ export const SozlamalarView: React.FC = () => {
     <div className="space-y-7 animate-in fade-in duration-200">
       {/* View Header */}
       <div>
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{t.sozlamalar.title}</h2>
-        <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">{t.sozlamalar.subtitle}</p>
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t.sozlamalar.title}</h2>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1">{t.sozlamalar.subtitle}</p>
       </div>
 
       {/* Segmented Sub Tabs (Frosted Capsule) */}
@@ -507,19 +507,19 @@ export const SozlamalarView: React.FC = () => {
           />
 
           <div>
-            <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
               {t.sozlamalar.workerRoleLabel}
             </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as WorkerRole)}
-              className="w-full px-4 py-3 bg-white/60 backdrop-blur-xl border border-white/85 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 focus:bg-white/95 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)]"
+              className="w-full px-4 py-3 bg-white/60 dark:bg-slate-800/80 backdrop-blur-xl border border-white/85 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 focus:bg-white/95 dark:focus:bg-slate-800 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)]"
             >
-              <option value="usta">{t.roles.usta}</option>
-              <option value="shogird">{t.roles.shogird}</option>
-              <option value="yordamchi">{t.roles.yordamchi}</option>
-              <option value="ornatuvchi">{t.roles.ornatuvchi}</option>
-              <option value="boshqa">{t.roles.boshqa}</option>
+              <option value="usta" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t.roles.usta}</option>
+              <option value="shogird" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t.roles.shogird}</option>
+              <option value="yordamchi" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t.roles.yordamchi}</option>
+              <option value="ornatuvchi" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t.roles.ornatuvchi}</option>
+              <option value="boshqa" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t.roles.boshqa}</option>
             </select>
           </div>
 

@@ -468,12 +468,12 @@ export const MoliyaView: React.FC = () => {
                   setAmount(String(s.balanceOwed));
                 }
               }}
-              className="w-full px-4 py-3 bg-white/60 backdrop-blur-xl border border-white/85 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 focus:bg-white/95 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)]"
+              className="w-full px-4 py-3 bg-white/60 dark:bg-slate-800/80 backdrop-blur-xl border border-white/85 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 focus:bg-white/95 dark:focus:bg-slate-800 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)]"
             >
               {workers.map((w) => {
                 const sum = financeSummaries.find((s) => s.workerId === w.id);
                 return (
-                  <option key={w.id} value={w.id}>
+                  <option key={w.id} value={w.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
                     {w.name} ({t.roles[w.role]}) — Qarz: {formatCurrency(sum?.balanceOwed || 0)}
                   </option>
                 );
