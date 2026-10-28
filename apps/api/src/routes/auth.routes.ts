@@ -16,6 +16,7 @@ import { authRateLimiter } from '../middlewares/rateLimiter.js';
 const router = Router();
 
 router.get('/status', checkSetupStatus);
+router.get('/setup-status', checkSetupStatus);
 router.post('/setup', authRateLimiter, setup);
 router.post('/login', authRateLimiter, validateBody(loginSchema), login);
 router.post('/refresh', refresh);

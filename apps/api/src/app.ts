@@ -43,6 +43,14 @@ export function createApp() {
   // Mount API routes
   app.use('/api', routes);
 
+  // 404 handler for unmatched API routes
+  app.use('/api', (_req, res) => {
+    res.status(404).json({
+      success: false,
+      error: 'API endpoint topilmadi',
+    });
+  });
+
   // Global Error Handler
   app.use(errorHandler);
 

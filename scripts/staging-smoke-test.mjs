@@ -26,11 +26,20 @@ async function runTest() {
   const health = await healthRes.json();
   console.log('   ✓ Health check passed:', health.status, `(${health.system})`);
 
-  // 2. Setup Status Check
-  console.log('\n2. Testing GET /api/auth/setup-status...');
+  // 2. Setup Status Check (verifying both /auth/setup-status and canonical /auth/status)
+  console.log('\n2. Testing GET /api/auth/setup-status & /api/auth/status...');
   const statusRes = await fetch(`${apiBase}/auth/setup-status`);
+  const contentType = statusRes.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await statusRes.text();
+    throw new Error(`Expected JSON response from /api/auth/setup-status, got ${contentType}: ${text.slice(0, 150)}`);
+  }
   const statusData = await statusRes.json();
-  console.log('   ✓ Setup status retrieved: isInitialized =', statusData.isInitialized);
+  console.log('   ✓ Setup-status endpoint returned JSON: isInitialized =', statusData.isInitialized);
+
+  const canonStatusRes = await fetch(`${apiBase}/auth/status`);
+  const canonStatusData = await canonStatusRes.json();
+  console.log('   ✓ Canonical /auth/status endpoint returned JSON: isInitialized =', canonStatusData.isInitialized);
 
   // 3. Authentication Flow
   if (!statusData.isInitialized) {

@@ -52,6 +52,31 @@ async function runTests() {
     // TEST 2: Owner Setup, Login & Refresh Token Rotation
     // -------------------------------------------------------------------------
     console.log('\n--- 2. Testing Owner Setup & Token Flow ---');
+
+    // Regression check: verify setup status endpoints return application/json and false when DB is empty
+    const statusBefore = await fetch(`${BASE_URL}/auth/status`);
+    assert.strictEqual(statusBefore.status, 200, 'GET /auth/status must return 200 OK');
+    assert.ok(statusBefore.headers.get('content-type')?.includes('application/json'), 'GET /auth/status must return JSON');
+    const statusBeforeJson = await statusBefore.json();
+    assert.strictEqual(statusBeforeJson.success, true);
+    assert.strictEqual(statusBeforeJson.isInitialized, false, 'isInitialized should be false before initial setup');
+
+    const setupStatusAliasBefore = await fetch(`${BASE_URL}/auth/setup-status`);
+    assert.strictEqual(setupStatusAliasBefore.status, 200, 'GET /auth/setup-status must return 200 OK');
+    assert.ok(setupStatusAliasBefore.headers.get('content-type')?.includes('application/json'), 'GET /auth/setup-status must return JSON');
+    const setupStatusAliasBeforeJson = await setupStatusAliasBefore.json();
+    assert.strictEqual(setupStatusAliasBeforeJson.success, true);
+    assert.strictEqual(setupStatusAliasBeforeJson.isInitialized, false);
+    console.log('✓ /auth/status and /auth/setup-status return JSON with isInitialized = false');
+
+    // Regression check: unknown API routes must return JSON 404, not Express default HTML
+    const unknownRes = await fetch(`${BASE_URL}/unknown-route-test`);
+    assert.strictEqual(unknownRes.status, 404, 'Unknown API route must return 404');
+    assert.ok(unknownRes.headers.get('content-type')?.includes('application/json'), 'Unknown route must return JSON, not HTML');
+    const unknownJson = await unknownRes.json();
+    assert.strictEqual(unknownJson.success, false);
+    console.log('✓ Unknown API route returns structured JSON 404 error');
+
     // Setup initial owner
     const setupRes = await fetch(`${BASE_URL}/auth/setup`, {
       method: 'POST',
@@ -69,6 +94,12 @@ async function runTests() {
     assert.ok(setupData.data.accessToken);
     assert.ok(setupData.data.refreshToken);
     console.log('✓ Initial owner setup succeeded');
+
+    // Verify setup status returns true after setup
+    const statusAfter = await fetch(`${BASE_URL}/auth/setup-status`);
+    const statusAfterJson = await statusAfter.json();
+    assert.strictEqual(statusAfterJson.isInitialized, true, 'isInitialized should be true after setup');
+    console.log('✓ /auth/setup-status returns isInitialized = true after owner creation');
 
     // Attempting second setup must be rejected (controlled setup, no public registration)
     const secondSetupRes = await fetch(`${BASE_URL}/auth/setup`, {
