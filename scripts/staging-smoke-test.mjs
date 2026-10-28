@@ -182,7 +182,7 @@ async function runTest() {
     headers: authHeaders,
   });
   const detailData = await detailRes.json();
-  console.log(`   ✓ Worker Financial Summary: Total Earned = ${detailData.data.summary.totalEarned} so'm, Paid = ${detailData.data.summary.totalPaid} so'm, Balance Owed = ${detailData.data.summary.balanceOwed} so'm`);
+  console.log(`   ✓ Worker Financial Summary: Accrued = ${detailData.data.totalAccruedSalary} so'm, Paid = ${detailData.data.totalPaid} so'm, Balance Owed = ${detailData.data.balanceOwed} so'm`);
 
   // 10. Refresh Token Rotation
   console.log('\n10. Testing POST /api/auth/refresh (Token Rotation)...');
