@@ -14,7 +14,8 @@
     "test": "pnpm -r run test",
     "prisma:generate": "pnpm --filter @akfa/api prisma:generate",
     "prisma:migrate": "pnpm --filter @akfa/api prisma:migrate",
-    "prisma:deploy": "pnpm --filter @akfa/api prisma:deploy"
+    "prisma:deploy": "pnpm --filter @akfa/api prisma:deploy",
+    "admin:reset": "node scripts/admin-reset-owner.mjs"
   },
   "packageManager": "pnpm@12.15.0",
   "devDependencies": {
