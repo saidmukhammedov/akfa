@@ -152,6 +152,8 @@ async function request<T>(
 
 export const api = {
   auth: {
+    session: async () =>
+      request<{ success: boolean; data: { accessToken: string; refreshToken: string; owner: OwnerProfile } }>('/auth/session'),
     status: async () => request<{ success: boolean; isInitialized: boolean }>('/auth/status'),
     setup: async (payload: { username: string; password: string; fullName: string; workshopName?: string; language?: string }) =>
       request<{ success: boolean; data: { accessToken: string; refreshToken: string; owner: OwnerProfile } }>('/auth/setup', {

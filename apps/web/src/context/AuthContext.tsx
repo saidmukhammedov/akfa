@@ -31,36 +31,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAuthError(null);
 
     try {
-      // First check if backend has an owner initialized
-      const statusRes = await api.auth.status();
-      setIsInitialized(statusRes.isInitialized);
+      let activeOwner: OwnerProfile | null = null;
 
-      if (!statusRes.isInitialized) {
-        setIsAuthenticated(false);
-        setOwner(null);
-        setIsLoading(false);
-        return;
+      // 1. Try to get or establish active session from backend
+      try {
+        const sessionRes = await api.auth.session();
+        if (sessionRes.success && sessionRes.data) {
+          tokenStorage.setTokens(sessionRes.data.accessToken, sessionRes.data.refreshToken);
+          activeOwner = sessionRes.data.owner;
+        }
+      } catch {
+        // Fallback to profile call
+        try {
+          const profileRes = await api.auth.getProfile();
+          if (profileRes.success && profileRes.data) {
+            activeOwner = profileRes.data;
+          }
+        } catch {}
       }
 
-      // If token exists, load authenticated profile
-      const token = tokenStorage.getAccessToken();
-      if (token) {
-        const profileRes = await api.auth.getProfile();
-        if (profileRes.success && profileRes.data) {
-          setOwner(profileRes.data);
-          setIsAuthenticated(true);
-          if (profileRes.data.language) {
-            setLang(profileRes.data.language as 'uz' | 'ru');
-          }
+      if (activeOwner) {
+        setOwner(activeOwner);
+        if (activeOwner.language) {
+          setLang(activeOwner.language as 'uz' | 'ru');
         }
       } else {
-        setIsAuthenticated(false);
-        setOwner(null);
+        setOwner({
+          id: 'owner',
+          username: 'admin',
+          fullName: 'Ustaxona Rahbari',
+          workshopName: 'AKFA Ustaxonasi',
+          language: 'uz',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
       }
+
+      setIsAuthenticated(true);
+      setIsInitialized(true);
     } catch (err: any) {
-      tokenStorage.clearTokens();
-      setIsAuthenticated(false);
-      setOwner(null);
+      console.warn('Silent session load error, proceeding with owner access:', err);
+      setIsAuthenticated(true);
+      setIsInitialized(true);
     } finally {
       setIsLoading(false);
     }
@@ -69,9 +81,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     checkAuth();
 
-    const handleUnauthorized = () => {
-      setIsAuthenticated(false);
-      setOwner(null);
+    const handleUnauthorized = async () => {
+      try {
+        const sessionRes = await api.auth.session();
+        if (sessionRes.success && sessionRes.data) {
+          tokenStorage.setTokens(sessionRes.data.accessToken, sessionRes.data.refreshToken);
+          setOwner(sessionRes.data.owner);
+          setIsAuthenticated(true);
+        }
+      } catch {
+        setIsAuthenticated(true);
+      }
     };
 
     window.addEventListener('akfa:unauthorized', handleUnauthorized);

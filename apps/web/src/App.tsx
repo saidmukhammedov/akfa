@@ -8,11 +8,10 @@ import { DashboardView } from './components/views/DashboardView';
 import { DavomatView } from './components/views/DavomatView';
 import { MoliyaView } from './components/views/MoliyaView';
 import { SozlamalarView } from './components/views/SozlamalarView';
-import { AuthView } from './components/views/AuthView';
 import { Loader2 } from 'lucide-react';
 
 export const AppContent: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
 
   if (isLoading) {
@@ -26,10 +25,6 @@ export const AppContent: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return <AuthView />;
   }
 
   return (

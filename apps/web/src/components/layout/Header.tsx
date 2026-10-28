@@ -3,12 +3,12 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useAppState } from '../../context/AppStateContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { ShieldCheck, Calendar, LogOut } from 'lucide-react';
+import { ShieldCheck, Calendar } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { t, formatDate } = useLanguage();
   const { selectedDate } = useAppState();
-  const { owner, logout } = useAuth();
+  const { owner } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 bg-workshop-surface/90 backdrop-blur-md border-b border-workshop-border">
@@ -45,17 +45,6 @@ export const Header: React.FC = () => {
             </div>
 
             <LanguageSwitcher />
-
-            {owner && (
-              <button
-                type="button"
-                onClick={logout}
-                title={t.auth.logoutButton}
-                className="p-2 text-slate-500 hover:text-absent-600 hover:bg-slate-100 rounded-xl transition-all"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            )}
           </div>
         </div>
       </div>

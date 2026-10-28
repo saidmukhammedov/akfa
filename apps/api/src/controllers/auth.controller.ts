@@ -83,6 +83,37 @@ export async function logout(req: Request, res: Response) {
   });
 }
 
+export async function getSession(req: Request, res: Response) {
+  const owner = await prisma.owner.findFirst({
+    select: {
+      id: true,
+      username: true,
+      fullName: true,
+      workshopName: true,
+      language: true,
+    },
+  });
+
+  if (!owner) {
+    return res.status(404).json({
+      success: false,
+      error: 'Ustaxona egasi hisobi topilmadi',
+    });
+  }
+
+  const accessToken = generateAccessToken(owner);
+  const refreshToken = await createRefreshToken(owner.id);
+
+  return res.json({
+    success: true,
+    data: {
+      owner,
+      accessToken,
+      refreshToken,
+    },
+  });
+}
+
 export async function getProfile(req: AuthenticatedRequest, res: Response) {
   return res.json({
     success: true,

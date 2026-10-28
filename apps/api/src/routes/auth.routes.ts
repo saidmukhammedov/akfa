@@ -3,6 +3,7 @@ import {
   login,
   refresh,
   logout,
+  getSession,
   getProfile,
   updateProfile,
   setup,
@@ -15,6 +16,7 @@ import { authRateLimiter } from '../middlewares/rateLimiter.js';
 
 const router = Router();
 
+router.get('/session', getSession);
 router.get('/status', checkSetupStatus);
 router.get('/setup-status', checkSetupStatus);
 router.post('/setup', authRateLimiter, setup);
