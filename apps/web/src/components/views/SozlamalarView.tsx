@@ -250,15 +250,15 @@ export const SozlamalarView: React.FC = () => {
                           <Badge status={worker.status} size="sm" />
                         </div>
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1 flex-wrap">
-                          <span className="font-extrabold text-slate-800 dark:text-slate-200">
+                          <span className="font-extrabold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                             {formatCurrency(worker.dailyRate)}
                           </span>
                           <span>&bull;</span>
-                          <span>{t.davomat.ratePerDay}</span>
+                          <span className="whitespace-nowrap">{t.davomat.ratePerDay}</span>
                           {worker.phone && (
                             <>
                               <span>&bull;</span>
-                              <span className="text-slate-700 dark:text-slate-300 font-bold">{worker.phone}</span>
+                              <span className="text-slate-700 dark:text-slate-300 font-bold whitespace-nowrap">{worker.phone}</span>
                             </>
                           )}
                         </div>

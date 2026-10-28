@@ -13,6 +13,7 @@ import {
   Users,
   CheckCircle2,
   XCircle,
+  Clock,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -113,23 +114,24 @@ export const DavomatView: React.FC = () => {
 
   // Counts for selected date
   const dateAttendances = attendances.filter((a) => a.date === selectedDate);
-  const presentCount = dateAttendances.filter((a) => a.status === 'PRESENT').length;
+  const presentCount = dateAttendances.filter((a) => a.status === 'PRESENT' && !a.isHalfDay).length;
+  const halfDayCount = dateAttendances.filter((a) => a.status === 'PRESENT' && a.isHalfDay).length;
   const absentCount = dateAttendances.filter((a) => a.status === 'ABSENT').length;
 
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {/* Sleek Header: Title, Date indicator & Bulk Mark */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight truncate">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">
             {t.davomat.title}
           </h2>
-          <span className="text-xs font-bold text-slate-500 hidden sm:inline truncate">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 hidden sm:inline truncate">
             &bull; {formatDate(selectedDate, 'full')}
           </span>
           {showSavedToast && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-800 bg-emerald-100/90 backdrop-blur-md px-3.5 py-1 rounded-full border border-emerald-200/90 shadow-clay-pill animate-in fade-in duration-100 shrink-0">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+            <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100/90 dark:bg-emerald-950/80 backdrop-blur-md px-3.5 py-1 rounded-full border border-emerald-200/90 dark:border-emerald-800/60 shadow-clay-pill animate-in fade-in duration-100 shrink-0">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
               {t.davomat.savedNotification}
             </span>
           )}
@@ -140,9 +142,9 @@ export const DavomatView: React.FC = () => {
           variant="secondary"
           size="sm"
           onClick={handleBulkMarkPresent}
-          className="text-emerald-800 bg-gradient-to-b from-white to-emerald-50 border-emerald-300 shadow-clay-btn text-xs font-black shrink-0 h-11 px-4 rounded-2xl"
+          className="text-emerald-800 dark:text-emerald-300 bg-gradient-to-b from-white to-emerald-50 dark:from-emerald-950/70 dark:to-emerald-900/50 border-emerald-300 dark:border-emerald-800/80 shadow-clay-btn text-xs font-black shrink-0 h-11 px-4 rounded-2xl"
         >
-          <CheckCheck className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+          <CheckCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 stroke-[2.5]" />
           <span className="hidden sm:inline">{t.davomat.markAllPresent}</span>
           <span className="sm:hidden">{t.davomat.present} ✓</span>
         </Button>
@@ -152,22 +154,22 @@ export const DavomatView: React.FC = () => {
       <div className="glass-clay-card p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3.5">
         {/* Left: Day switcher & calendar */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="inline-flex items-center glass-slot p-1 rounded-2xl shadow-glass-slot">
+          <div className="inline-flex items-center glass-slot p-1 rounded-2xl shadow-glass-slot shrink-0">
             <button
               type="button"
               onClick={() => shiftDate(-1)}
               title="Oldingi kun"
-              className="clay-interactive p-2 text-slate-500 hover:text-slate-900 rounded-xl cursor-pointer"
+              className="clay-interactive p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
             </button>
             <button
               type="button"
               onClick={() => setQuickDate(0)}
-              className={`clay-interactive px-3.5 py-1.5 text-xs font-black rounded-xl cursor-pointer ${
+              className={`clay-interactive px-3.5 py-1.5 text-xs font-black rounded-xl cursor-pointer whitespace-nowrap ${
                 selectedDate === todayStr
-                  ? 'bg-white text-akfa-700 shadow-clay-card border border-white'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-800 text-akfa-700 dark:text-blue-300 shadow-clay-card border border-white dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {t.common.today}
@@ -175,10 +177,10 @@ export const DavomatView: React.FC = () => {
             <button
               type="button"
               onClick={() => setQuickDate(1)}
-              className={`clay-interactive px-3.5 py-1.5 text-xs font-black rounded-xl cursor-pointer ${
+              className={`clay-interactive px-3.5 py-1.5 text-xs font-black rounded-xl cursor-pointer whitespace-nowrap ${
                 selectedDate === yesterdayStr
-                  ? 'bg-white text-akfa-700 shadow-clay-card border border-white'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-800 text-akfa-700 dark:text-blue-300 shadow-clay-card border border-white dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {t.common.yesterday}
@@ -187,34 +189,41 @@ export const DavomatView: React.FC = () => {
               type="button"
               onClick={() => shiftDate(1)}
               title="Keyingi kun"
-              className="clay-interactive p-2 text-slate-500 hover:text-slate-900 rounded-xl cursor-pointer"
+              className="clay-interactive p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl cursor-pointer"
             >
               <ChevronRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
 
-          <div className="flex items-center gap-2 px-3.5 py-2 bg-white/70 backdrop-blur-md border border-white/90 rounded-2xl text-xs font-bold shadow-clay-pill">
-            <Calendar className="w-4 h-4 text-akfa-600 shrink-0" />
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-white/70 dark:bg-slate-850/80 backdrop-blur-md border border-white/90 dark:border-slate-750 rounded-2xl text-xs font-bold shadow-clay-pill shrink-0">
+            <Calendar className="w-4 h-4 text-akfa-600 dark:text-blue-400 shrink-0" />
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-slate-800 dark:text-white focus:outline-none cursor-pointer [color-scheme:light] dark:[color-scheme:dark]"
             />
           </div>
         </div>
 
         {/* Right: Live attendance counters */}
-        <div className="flex items-center gap-2.5 text-xs font-black ml-auto sm:ml-0">
-          <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-b from-present-50 to-present-100 text-present-800 border border-present-200/90 shadow-clay-pill">
-            <CheckCircle2 className="w-4 h-4 text-present-600 stroke-[2.5]" />
+        <div className="flex items-center gap-2 text-xs font-black ml-auto sm:ml-0 flex-wrap">
+          <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-b from-present-50 to-present-100 dark:from-present-950/70 dark:to-present-900/50 text-present-800 dark:text-present-300 border border-present-200/90 dark:border-present-800/60 shadow-clay-pill whitespace-nowrap shrink-0">
+            <CheckCircle2 className="w-4 h-4 text-present-600 dark:text-present-400 stroke-[2.5]" />
             <span>{presentCount}</span>
-            <span className="text-[11px] font-semibold text-present-700">{t.dashboard.presentRatio}</span>
+            <span className="text-[11px] font-semibold text-present-700 dark:text-present-400">{t.dashboard.presentRatio}</span>
           </span>
-          <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-b from-absent-50 to-absent-100 text-absent-800 border border-absent-200/90 shadow-clay-pill">
-            <XCircle className="w-4 h-4 text-absent-600 stroke-[2.5]" />
+          {halfDayCount > 0 && (
+            <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-b from-amber-50 to-amber-100 dark:from-amber-950/70 dark:to-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-200/90 dark:border-amber-800/60 shadow-clay-pill whitespace-nowrap shrink-0">
+              <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.5]" />
+              <span>{halfDayCount}</span>
+              <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">{t.davomat.halfDay || '0.5 kun'}</span>
+            </span>
+          )}
+          <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-b from-absent-50 to-absent-100 dark:from-absent-950/70 dark:to-absent-900/50 text-absent-800 dark:text-absent-300 border border-absent-200/90 dark:border-absent-800/60 shadow-clay-pill whitespace-nowrap shrink-0">
+            <XCircle className="w-4 h-4 text-absent-600 dark:text-absent-400 stroke-[2.5]" />
             <span>{absentCount}</span>
-            <span className="text-[11px] font-semibold text-absent-700">{t.dashboard.absentRatio}</span>
+            <span className="text-[11px] font-semibold text-absent-700 dark:text-absent-400">{t.dashboard.absentRatio}</span>
           </span>
         </div>
       </div>
@@ -281,11 +290,11 @@ export const DavomatView: React.FC = () => {
                 </div>
 
                 {/* Tactile Controls: Attendance Pill & Note Button */}
-                <div className="flex items-center justify-end gap-2.5 pt-1 sm:pt-0">
+                <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-2 sm:pt-0 shrink-0 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={() => openNoteModal(worker.id, record?.notes)}
-                    className={`clay-interactive p-2.5 sm:p-3 rounded-2xl border transition-all text-xs font-black flex items-center gap-1.5 shadow-clay-pill cursor-pointer ${
+                    className={`clay-interactive p-2.5 sm:p-3 rounded-2xl border transition-all text-xs font-black flex items-center gap-1.5 shadow-clay-pill cursor-pointer shrink-0 ${
                       hasNotes
                         ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700'
                         : 'bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-white/95 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'

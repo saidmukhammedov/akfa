@@ -141,6 +141,29 @@ const mockFinanceSummaries = [
   },
 ];
 
+const mockPayments = [
+  {
+    id: 'pay-1',
+    workerId: 'w-1',
+    workerName: 'wwa',
+    amount: 100000,
+    paymentDate: '2026-10-28',
+    paymentMethod: 'CASH',
+    notes: 'Avans berildi',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'pay-2',
+    workerId: 'w-2',
+    workerName: 'Jasur Shogird',
+    amount: 250000,
+    paymentDate: '2026-10-27',
+    paymentMethod: 'CARD',
+    notes: 'Karta orqali to\'liq hisob-kitob',
+    createdAt: new Date().toISOString(),
+  },
+];
+
 async function setupMockRoutes(page) {
   await page.route('**/api/**', async (route) => {
     const url = route.request().url();
@@ -223,6 +246,17 @@ async function setupMockRoutes(page) {
       });
     }
 
+    if (url.includes('/payments')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: mockPayments,
+        }),
+      });
+    }
+
     return route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -295,6 +329,13 @@ async function main() {
       const darkMoliyaScreenshot = `${ARTIFACTS_DIR}/dark_mode_moliya.png`;
       await page.screenshot({ path: darkMoliyaScreenshot });
       console.log(`✓ Dark mode Moliya screenshot saved to ${darkMoliyaScreenshot}`);
+
+      // Scroll down to Recent Payments in Moliya to inspect the exact area from user screenshot
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.waitForTimeout(300);
+      const darkMoliyaPaymentsScreenshot = `${ARTIFACTS_DIR}/dark_mode_moliya_payments.png`;
+      await page.screenshot({ path: darkMoliyaPaymentsScreenshot });
+      console.log(`✓ Dark mode Moliya payments screenshot saved to ${darkMoliyaPaymentsScreenshot}`);
 
       // Dark Mode Sozlamalar
       await page.getByRole('button', { name: 'Sozlamalar' }).last().click();

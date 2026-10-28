@@ -34,7 +34,7 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
   };
 
   return (
-    <div className="inline-flex items-center gap-1 p-1 sm:p-1.5 glass-slot rounded-full select-none max-w-full overflow-x-auto">
+    <div className="inline-flex items-center gap-1 p-1 sm:p-1.5 glass-slot rounded-full select-none max-w-full overflow-x-auto shrink-0">
       {/* Keldi Button */}
       <button
         type="button"
@@ -44,7 +44,7 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
             onChange('PRESENT', false);
           }
         }}
-        className={`clay-interactive flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-black transition-all duration-150 cursor-pointer ${
+        className={`clay-interactive flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-black transition-all duration-150 cursor-pointer whitespace-nowrap shrink-0 ${
           isPresent && !isHalfDay
             ? 'bg-gradient-to-b from-present-400 via-present-500 to-present-600 text-white shadow-clay-btn-success border border-present-300/60'
             : isPresent && isHalfDay
@@ -52,8 +52,8 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-800/40 font-bold'
         }`}
       >
-        <Check className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isPresent && !isHalfDay ? 'stroke-[3] drop-shadow-sm' : 'stroke-2'}`} />
-        <span>{t.davomat.present}</span>
+        <Check className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${isPresent && !isHalfDay ? 'stroke-[3] drop-shadow-sm' : 'stroke-2'}`} />
+        <span className="whitespace-nowrap">{t.davomat.present}</span>
       </button>
 
       {/* 0.5 kun (Half-day) Toggle Button */}
@@ -62,7 +62,7 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
         disabled={disabled || !isPresent}
         onClick={handleHalfDayClick}
         title={!isPresent ? "0.5 kun faqat 'Keldi' statusida ishlaydi" : isHalfDay ? "To'liq kunga qaytarish" : "Yarim kun (0.5 stavka) belgilash"}
-        className={`clay-interactive flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-black transition-all duration-150 ${
+        className={`clay-interactive flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-black transition-all duration-150 whitespace-nowrap shrink-0 ${
           !isPresent
             ? 'opacity-40 text-slate-400 dark:text-slate-600 cursor-not-allowed bg-transparent'
             : isHalfDay
@@ -70,7 +70,7 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
             : 'bg-white/60 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:text-amber-600 hover:bg-white dark:hover:bg-slate-800 border border-white/70 dark:border-slate-700 cursor-pointer'
         }`}
       >
-        <Clock3 className={`w-3.5 h-3.5 ${isHalfDay ? 'stroke-[2.8] drop-shadow-sm' : 'stroke-2'}`} />
+        <Clock3 className={`w-3.5 h-3.5 shrink-0 ${isHalfDay ? 'stroke-[2.8] drop-shadow-sm' : 'stroke-2'}`} />
         <span className="whitespace-nowrap">{t.davomat.halfDay || '0.5 kun'}</span>
       </button>
 
@@ -83,14 +83,14 @@ export const ClayAttendanceToggle: React.FC<ClayAttendanceToggleProps> = ({
             onChange('ABSENT', false);
           }
         }}
-        className={`clay-interactive flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-black transition-all duration-150 cursor-pointer ${
+        className={`clay-interactive flex items-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-black transition-all duration-150 cursor-pointer whitespace-nowrap shrink-0 ${
           !isPresent
             ? 'bg-gradient-to-b from-absent-400 via-absent-500 to-absent-600 text-white shadow-clay-btn-danger border border-absent-300/60'
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-800/40 font-bold'
         }`}
       >
-        <X className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${!isPresent ? 'stroke-[3] drop-shadow-sm' : 'stroke-2'}`} />
-        <span>{t.davomat.absent}</span>
+        <X className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${!isPresent ? 'stroke-[3] drop-shadow-sm' : 'stroke-2'}`} />
+        <span className="whitespace-nowrap">{t.davomat.absent}</span>
       </button>
     </div>
   );

@@ -35,7 +35,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
 
   // Today's attendance counts
   const todaysAttendance = attendances.filter((a) => a.date === selectedDate);
-  const presentCount = todaysAttendance.filter((a) => a.status === 'PRESENT').length;
+  const presentCount = todaysAttendance.filter((a) => a.status === 'PRESENT' && !a.isHalfDay).length;
+  const halfDayCount = todaysAttendance.filter((a) => a.status === 'PRESENT' && a.isHalfDay).length;
   const absentCount = todaysAttendance.filter((a) => a.status === 'ABSENT').length;
   const totalWorkers = activeWorkers.length;
 
@@ -92,12 +93,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
               {t.dashboard.presentRatio}
             </span>
           </div>
-          <div className="mt-4 flex items-center gap-2.5 text-xs">
-            <span className="inline-flex items-center gap-1.5 text-present-800 dark:text-present-300 font-extrabold bg-gradient-to-b from-present-50 to-present-100/90 dark:from-present-950/60 dark:to-present-900/40 px-3 py-1 rounded-full border border-present-200/90 dark:border-present-800/60 shadow-clay-pill">
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-present-800 dark:text-present-300 font-extrabold bg-gradient-to-b from-present-50 to-present-100/90 dark:from-present-950/60 dark:to-present-900/40 px-3 py-1 rounded-full border border-present-200/90 dark:border-present-800/60 shadow-clay-pill whitespace-nowrap shrink-0">
               <CheckCircle2 className="w-3.5 h-3.5 text-present-600 dark:text-present-400 stroke-[2.5]" />
               {presentCount} {t.davomat.present}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-absent-800 dark:text-absent-300 font-extrabold bg-gradient-to-b from-absent-50 to-absent-100/90 dark:from-absent-950/60 dark:to-absent-900/40 px-3 py-1 rounded-full border border-absent-200/90 dark:border-absent-800/60 shadow-clay-pill">
+            {halfDayCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 text-amber-800 dark:text-amber-300 font-extrabold bg-gradient-to-b from-amber-50 to-amber-100/90 dark:from-amber-950/60 dark:to-amber-900/40 px-3 py-1 rounded-full border border-amber-200/90 dark:border-amber-800/60 shadow-clay-pill whitespace-nowrap shrink-0">
+                <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.5]" />
+                {halfDayCount} {t.davomat.halfDay || '0.5 kun'}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1.5 text-absent-800 dark:text-absent-300 font-extrabold bg-gradient-to-b from-absent-50 to-absent-100/90 dark:from-absent-950/60 dark:to-absent-900/40 px-3 py-1 rounded-full border border-absent-200/90 dark:border-absent-800/60 shadow-clay-pill whitespace-nowrap shrink-0">
               <XCircle className="w-3.5 h-3.5 text-absent-600 dark:text-absent-400 stroke-[2.5]" />
               {absentCount} {t.davomat.absent}
             </span>
@@ -188,34 +195,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
             <div className="divide-y divide-white/60 dark:divide-slate-800/80">
               {activeWorkers.map((worker) => {
                 const record = todaysAttendance.find((a) => a.workerId === worker.id);
-                const isPresent = record?.status === 'PRESENT';
+                const isPresent = record?.status === 'PRESENT' && !record?.isHalfDay;
+                const isHalfDay = Boolean(record?.status === 'PRESENT' && record?.isHalfDay);
 
                 return (
-                  <div key={worker.id} className="py-3.5 flex items-center justify-between gap-3.5">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="clay-avatar w-10 h-10 rounded-2xl flex items-center justify-center font-black text-slate-800 dark:text-slate-100 text-sm flex-shrink-0">
+                  <div key={worker.id} className="py-3.5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="clay-avatar w-10 h-10 rounded-2xl flex items-center justify-center font-black text-slate-800 dark:text-slate-100 text-sm shrink-0">
                         {worker.name.charAt(0)}
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
                             {worker.name}
                           </p>
                           <Badge role={worker.role} size="sm" />
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5 whitespace-nowrap">
                           {formatCurrency(worker.dailyRate)} / {t.davomat.ratePerDay}
                         </p>
                       </div>
                     </div>
-                    <div>
+                    <div className="shrink-0">
                       {isPresent ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-black text-present-800 dark:text-present-300 bg-gradient-to-b from-present-50 to-present-100 dark:from-present-950/60 dark:to-present-900/40 px-3.5 py-1.5 rounded-full border border-present-200/90 dark:border-present-800/60 shadow-clay-pill">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-black text-present-800 dark:text-present-300 bg-gradient-to-b from-present-50 to-present-100 dark:from-present-950/60 dark:to-present-900/40 px-3.5 py-1.5 rounded-full border border-present-200/90 dark:border-present-800/60 shadow-clay-pill whitespace-nowrap">
                           <CheckCircle2 className="w-3.5 h-3.5 text-present-600 dark:text-present-400 stroke-[2.5]" />
                           {t.davomat.present}
                         </span>
+                      ) : isHalfDay ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-black text-amber-800 dark:text-amber-300 bg-gradient-to-b from-amber-50 to-amber-100 dark:from-amber-950/60 dark:to-amber-900/40 px-3.5 py-1.5 rounded-full border border-amber-200/90 dark:border-amber-800/60 shadow-clay-pill whitespace-nowrap">
+                          <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.5]" />
+                          {t.davomat.halfDay || '0.5 kun'}
+                        </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-black text-absent-800 dark:text-absent-300 bg-gradient-to-b from-absent-50 to-absent-100 dark:from-absent-950/60 dark:to-absent-900/40 px-3.5 py-1.5 rounded-full border border-absent-200/90 dark:border-absent-800/60 shadow-clay-pill">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-black text-absent-800 dark:text-absent-300 bg-gradient-to-b from-absent-50 to-absent-100 dark:from-absent-950/60 dark:to-absent-900/40 px-3.5 py-1.5 rounded-full border border-absent-200/90 dark:border-absent-800/60 shadow-clay-pill whitespace-nowrap">
                           <XCircle className="w-3.5 h-3.5 text-absent-600 dark:text-absent-400 stroke-[2.5]" />
                           {t.davomat.absent}
                         </span>
@@ -251,25 +264,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
           ) : (
             <div className="divide-y divide-white/60 dark:divide-slate-800/80">
               {payments.slice(0, 4).map((payment) => (
-                <div key={payment.id} className="py-3.5 flex items-center justify-between gap-3.5">
-                  <div className="min-w-0">
+                <div key={payment.id} className="py-3.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
                       {payment.workerName || 'Ishchi'}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
-                      <span>{formatDate(payment.paymentDate, 'short')}</span>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5 flex-wrap">
+                      <span className="whitespace-nowrap">{formatDate(payment.paymentDate, 'short')}</span>
                       <span>&bull;</span>
-                      <span>{t.paymentMethods[payment.paymentMethod]}</span>
+                      <span className="whitespace-nowrap">{t.paymentMethods[payment.paymentMethod]}</span>
                       {payment.notes && (
                         <>
                           <span>&bull;</span>
-                          <span className="truncate italic">"{payment.notes}"</span>
+                          <span className="truncate italic max-w-[120px] sm:max-w-xs">"{payment.notes}"</span>
                         </>
                       )}
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <span className="text-sm font-black text-akfa-700 dark:text-blue-300 bg-blue-50/80 dark:bg-blue-950/70 px-3 py-1 rounded-full border border-blue-200/70 dark:border-blue-800/60 shadow-clay-pill">
+                  <div className="text-right shrink-0">
+                    <span className="text-xs sm:text-sm font-black text-akfa-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/80 px-3 sm:px-3.5 py-1.5 rounded-full border border-blue-200/80 dark:border-blue-800/80 shadow-clay-pill whitespace-nowrap inline-block">
                       {formatCurrency(payment.amount)}
                     </span>
                   </div>
