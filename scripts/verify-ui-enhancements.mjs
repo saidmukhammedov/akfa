@@ -49,7 +49,9 @@ function startServer() {
 }
 
 async function main() {
-  const server = await startServer();
+  const targetUrl = process.argv[2];
+  const server = targetUrl ? null : await startServer();
+  const baseUrl = targetUrl || `http://localhost:${PORT}`;
 
   const browser = await chromium.launch({
     executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -63,8 +65,8 @@ async function main() {
     });
     const page = await context.newPage();
 
-    console.log('\n--- 1. Loading UI & Logging In ---');
-    await page.goto(`http://localhost:${PORT}`, { waitUntil: 'domcontentloaded' });
+    console.log(`\n--- 1. Loading UI & Logging In (${baseUrl}) ---`);
+    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
 
     // Wait for either the login form or already logged in dashboard
     try {
@@ -141,7 +143,7 @@ async function main() {
     process.exitCode = 1;
   } finally {
     await browser.close();
-    server.close();
+    if (server) server.close();
   }
 }
 
