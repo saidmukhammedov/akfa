@@ -6,6 +6,7 @@ export const loginSchema = z.object({
 });
 
 export const updateOwnerProfileSchema = z.object({
+  username: z.string().min(3, { message: "Foydalanuvchi nomi kamida 3 belgidan iborat bo'lishi kerak" }).optional(),
   fullName: z.string().min(2, { message: "To'liq ism kiritilishi shart" }).optional(),
   workshopName: z.string().min(2, { message: "Tsex nomi kiritilishi shart" }).optional(),
   language: z.enum(['uz', 'ru'], { message: "Noto'g'ri til tanlandi" }).optional(),

@@ -2,7 +2,7 @@ export const uz = {
   app: {
     title: 'AKFA Ustaxona',
     subtitle: 'Alyuminiy va PVX rom ishlab chiqarish boshqaruvi',
-    ownerOnlyNotice: 'Faqat ustaxona egasi uchun himoyalangan tizim',
+    ownerOnlyNotice: 'Maxsus himoyalangan tizim',
   },
   nav: {
     dashboard: 'Boshqaruv',

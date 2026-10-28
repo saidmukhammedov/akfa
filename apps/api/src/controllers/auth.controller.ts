@@ -92,7 +92,7 @@ export async function getProfile(req: AuthenticatedRequest, res: Response) {
 
 export async function updateProfile(req: AuthenticatedRequest, res: Response) {
   const ownerId = req.owner!.id;
-  const { fullName, workshopName, language, currentPassword, newPassword } = req.body;
+  const { username, fullName, workshopName, language, currentPassword, newPassword } = req.body;
 
   const owner = await prisma.owner.findUnique({ where: { id: ownerId } });
   if (!owner) {
@@ -100,6 +100,17 @@ export async function updateProfile(req: AuthenticatedRequest, res: Response) {
   }
 
   const updateData: any = {};
+  if (username !== undefined && username !== owner.username) {
+    const existing = await prisma.owner.findUnique({ where: { username } });
+    if (existing && existing.id !== ownerId) {
+      return res.status(400).json({
+        success: false,
+        error: "Bu foydalanuvchi nomi allaqachon band",
+      });
+    }
+    updateData.username = username;
+  }
+
   if (fullName !== undefined) updateData.fullName = fullName;
   if (workshopName !== undefined) updateData.workshopName = workshopName;
   if (language !== undefined) updateData.language = language;

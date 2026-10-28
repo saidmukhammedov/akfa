@@ -4,7 +4,7 @@ export const ru: TranslationType = {
   app: {
     title: 'Цех AKFA',
     subtitle: 'Управление производством алюминиевых и ПВХ окон и дверей',
-    ownerOnlyNotice: 'Защищенная система исключительно для владельца цеха',
+    ownerOnlyNotice: 'Специально защищенная система',
   },
   nav: {
     dashboard: 'Обзор',
