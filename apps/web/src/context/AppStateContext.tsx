@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import {
   Worker,
   AttendanceRecord,
   PaymentRecord,
-  OwnerProfile,
   AttendanceStatus,
   PaymentMethod,
   WorkerCreateInput,
@@ -12,187 +11,39 @@ import {
   WorkshopFinanceOverview,
   getTodayDateString,
 } from '@akfa/shared';
+import { api, ApiError } from '../api/client';
+import { useAuth } from './AuthContext';
 
-// =============================================================================
-// PROTOTYPE SEED DATA (ISOLATED & CLEARLY LABELED FOR PHASE 1 UI VALIDATION)
-// In production, data is retrieved directly from the Neon PostgreSQL database via API.
-// =============================================================================
-export const PROTOTYPE_SEED_DATA = {
-  isSampleData: true,
-  notice: 'Phase 1 Prototype Dataset — Do not treat as production bookkeeping records',
-  owner: {
-    id: 'owner-default-1',
-    username: 'admin',
-    fullName: 'Alisher Qodirov',
-    workshopName: 'AKFA Rom va Eshiklar Tsexi',
-    language: 'uz' as const,
-    createdAt: '2026-10-01T00:00:00Z',
-    updatedAt: '2026-10-01T00:00:00Z',
-  },
-  workers: [
-    {
-      id: 'worker-1',
-      name: 'Jamshid Karimov',
-      phone: '+998 90 123 45 67',
-      role: 'usta' as const,
-      dailyRate: 250000,
-      status: 'ACTIVE' as const,
-      createdAt: '2026-10-01T08:00:00Z',
-      updatedAt: '2026-10-01T08:00:00Z',
-    },
-    {
-      id: 'worker-2',
-      name: 'Sherzod Toirov',
-      phone: '+998 93 987 65 43',
-      role: 'usta' as const,
-      dailyRate: 220000,
-      status: 'ACTIVE' as const,
-      createdAt: '2026-10-01T08:00:00Z',
-      updatedAt: '2026-10-01T08:00:00Z',
-    },
-    {
-      id: 'worker-3',
-      name: 'Bobur Usmonov',
-      phone: '+998 97 456 78 90',
-      role: 'ornatuvchi' as const,
-      dailyRate: 200000,
-      status: 'ACTIVE' as const,
-      createdAt: '2026-10-05T08:00:00Z',
-      updatedAt: '2026-10-05T08:00:00Z',
-    },
-    {
-      id: 'worker-4',
-      name: 'Jasur Saidov',
-      phone: '+998 91 234 56 78',
-      role: 'shogird' as const,
-      dailyRate: 140000,
-      status: 'ACTIVE' as const,
-      createdAt: '2026-10-10T08:00:00Z',
-      updatedAt: '2026-10-10T08:00:00Z',
-    },
-    {
-      id: 'worker-5',
-      name: 'Farrux Rahimov',
-      phone: '+998 99 345 67 89',
-      role: 'yordamchi' as const,
-      dailyRate: 120000,
-      status: 'ACTIVE' as const,
-      createdAt: '2026-10-12T08:00:00Z',
-      updatedAt: '2026-10-12T08:00:00Z',
-    },
-  ],
-  attendances: [
-    {
-      id: 'att-1',
-      workerId: 'worker-1',
-      date: '2026-10-28',
-      status: 'PRESENT' as const,
-      rateSnapshot: 250000,
-      notes: null,
-      createdAt: '2026-10-28T08:00:00Z',
-      updatedAt: '2026-10-28T08:00:00Z',
-    },
-    {
-      id: 'att-2',
-      workerId: 'worker-2',
-      date: '2026-10-28',
-      status: 'PRESENT' as const,
-      rateSnapshot: 220000,
-      notes: null,
-      createdAt: '2026-10-28T08:00:00Z',
-      updatedAt: '2026-10-28T08:00:00Z',
-    },
-    {
-      id: 'att-3',
-      workerId: 'worker-3',
-      date: '2026-10-28',
-      status: 'PRESENT' as const,
-      rateSnapshot: 200000,
-      notes: null,
-      createdAt: '2026-10-28T08:00:00Z',
-      updatedAt: '2026-10-28T08:00:00Z',
-    },
-    {
-      id: 'att-4',
-      workerId: 'worker-4',
-      date: '2026-10-28',
-      status: 'PRESENT' as const,
-      rateSnapshot: 140000,
-      notes: null,
-      createdAt: '2026-10-28T08:00:00Z',
-      updatedAt: '2026-10-28T08:00:00Z',
-    },
-    {
-      id: 'att-5',
-      workerId: 'worker-5',
-      date: '2026-10-28',
-      status: 'ABSENT' as const,
-      rateSnapshot: 120000,
-      notes: 'Betobligi sababli kelmadi',
-      createdAt: '2026-10-28T08:00:00Z',
-      updatedAt: '2026-10-28T08:00:00Z',
-    },
-    // Past attendance records to verify historical rate snapshots and salary calculations
-    {
-      id: 'att-past-1',
-      workerId: 'worker-1',
-      date: '2026-10-27',
-      status: 'PRESENT' as const,
-      rateSnapshot: 250000,
-      notes: null,
-      createdAt: '2026-10-27T08:00:00Z',
-      updatedAt: '2026-10-27T08:00:00Z',
-    },
-    {
-      id: 'att-past-2',
-      workerId: 'worker-2',
-      date: '2026-10-27',
-      status: 'PRESENT' as const,
-      rateSnapshot: 220000,
-      notes: null,
-      createdAt: '2026-10-27T08:00:00Z',
-      updatedAt: '2026-10-27T08:00:00Z',
-    },
-  ],
-  payments: [
-    {
-      id: 'pay-1',
-      workerId: 'worker-1',
-      amount: 1500000,
-      paymentDate: '2026-10-20',
-      paymentMethod: 'CASH' as const,
-      notes: 'Haftalik avans berildi',
-      createdAt: '2026-10-20T17:00:00Z',
-      workerName: 'Jamshid Karimov',
-    },
-    {
-      id: 'pay-2',
-      workerId: 'worker-2',
-      amount: 1000000,
-      paymentDate: '2026-10-20',
-      paymentMethod: 'CARD' as const,
-      notes: 'Plastik kartaga tashlab berildi',
-      createdAt: '2026-10-20T17:15:00Z',
-      workerName: 'Sherzod Toirov',
-    },
-  ],
-};
+interface DateAttendanceRecord {
+  workerId: string;
+  workerName: string;
+  workerRole: string;
+  dailyRate: number;
+  status: AttendanceStatus;
+  rateSnapshot: number;
+  notes: string | null;
+  isMarked: boolean;
+}
 
 interface AppStateContextType {
-  owner: OwnerProfile;
   workers: Worker[];
   attendances: AttendanceRecord[];
+  dateAttendanceRecords: DateAttendanceRecord[];
   payments: PaymentRecord[];
   selectedDate: string;
   setSelectedDate: (date: string) => void;
-  markAttendance: (workerId: string, status: AttendanceStatus, notes?: string) => void;
-  bulkMarkAttendance: (status: AttendanceStatus) => void;
-  recordPayment: (workerId: string, amount: number, paymentMethod: PaymentMethod, notes?: string) => void;
-  addWorker: (input: WorkerCreateInput) => void;
-  updateWorker: (id: string, input: WorkerUpdateInput) => void;
-  archiveWorker: (id: string) => void;
-  unarchiveWorker: (id: string) => void;
-  updateOwnerProfile: (fullName: string, workshopName: string) => void;
+  isLoading: boolean;
+  isMutating: boolean;
+  error: string | null;
+  clearError: () => void;
+  refreshData: () => Promise<void>;
+  markAttendance: (workerId: string, status: AttendanceStatus, notes?: string) => Promise<void>;
+  bulkMarkAttendance: (status: AttendanceStatus) => Promise<void>;
+  recordPayment: (workerId: string, amount: number, paymentMethod: PaymentMethod, notes?: string) => Promise<void>;
+  addWorker: (input: WorkerCreateInput) => Promise<void>;
+  updateWorker: (id: string, input: WorkerUpdateInput) => Promise<void>;
+  archiveWorker: (id: string) => Promise<void>;
+  unarchiveWorker: (id: string) => Promise<void>;
   financeSummaries: WorkerFinanceSummary[];
   financeOverview: WorkshopFinanceOverview;
   activeWorkers: Worker[];
@@ -203,238 +54,287 @@ interface AppStateContextType {
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
 export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [owner, setOwner] = useState<OwnerProfile>(() => {
-    const saved = localStorage.getItem('akfa_owner');
-    return saved ? JSON.parse(saved) : PROTOTYPE_SEED_DATA.owner;
-  });
+  const { isAuthenticated } = useAuth();
 
-  const [workers, setWorkers] = useState<Worker[]>(() => {
-    const saved = localStorage.getItem('akfa_workers');
-    return saved ? JSON.parse(saved) : PROTOTYPE_SEED_DATA.workers;
-  });
-
-  const [attendances, setAttendances] = useState<AttendanceRecord[]>(() => {
-    const saved = localStorage.getItem('akfa_attendances');
-    return saved ? JSON.parse(saved) : PROTOTYPE_SEED_DATA.attendances;
-  });
-
-  const [payments, setPayments] = useState<PaymentRecord[]>(() => {
-    const saved = localStorage.getItem('akfa_payments');
-    return saved ? JSON.parse(saved) : PROTOTYPE_SEED_DATA.payments;
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [dateAttendanceRecords, setDateAttendanceRecords] = useState<DateAttendanceRecord[]>([]);
+  const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [financeSummaries, setFinanceSummaries] = useState<WorkerFinanceSummary[]>([]);
+  const [financeOverview, setFinanceOverview] = useState<WorkshopFinanceOverview>({
+    totalAccruedSalaries: 0,
+    totalPaymentsDistributed: 0,
+    totalPendingBalance: 0,
+    activeWorkerCount: 0,
   });
 
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isMutating, setIsMutating] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Persistence to local storage for realistic visual test workflows
-  useEffect(() => {
-    localStorage.setItem('akfa_owner', JSON.stringify(owner));
-  }, [owner]);
-
-  useEffect(() => {
-    localStorage.setItem('akfa_workers', JSON.stringify(workers));
-  }, [workers]);
-
-  useEffect(() => {
-    localStorage.setItem('akfa_attendances', JSON.stringify(attendances));
-  }, [attendances]);
-
-  useEffect(() => {
-    localStorage.setItem('akfa_payments', JSON.stringify(payments));
-  }, [payments]);
-
-  // Tactile attendance marking with rate snapshotting
-  const markAttendance = (workerId: string, status: AttendanceStatus, notes?: string) => {
-    const worker = workers.find((w) => w.id === workerId);
-    if (!worker) return;
-
-    setAttendances((prev) => {
-      const idx = prev.findIndex((a) => a.workerId === workerId && a.date === selectedDate);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = {
-          ...updated[idx],
-          status,
-          notes: notes !== undefined ? notes : updated[idx].notes,
-          updatedAt: new Date().toISOString(),
-        };
-        return updated;
-      } else {
-        const newRecord: AttendanceRecord = {
-          id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          workerId,
-          date: selectedDate,
-          status,
-          rateSnapshot: worker.dailyRate, // Snapshot of worker's daily rate for accurate historical pay calculation
-          notes: notes || null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        return [...prev, newRecord];
-      }
-    });
-  };
-
-  const bulkMarkAttendance = (status: AttendanceStatus) => {
-    const active = workers.filter((w) => w.status === 'ACTIVE');
-    setAttendances((prev) => {
-      const updated = [...prev];
-      for (const w of active) {
-        const idx = updated.findIndex((a) => a.workerId === w.id && a.date === selectedDate);
-        if (idx >= 0) {
-          updated[idx] = {
-            ...updated[idx],
-            status,
-            updatedAt: new Date().toISOString(),
-          };
-        } else {
-          updated.push({
-            id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            workerId: w.id,
-            date: selectedDate,
-            status,
-            rateSnapshot: w.dailyRate,
-            notes: null,
+  const fetchAttendanceForDate = useCallback(async (date: string) => {
+    if (!isAuthenticated) return;
+    try {
+      const res = await api.attendance.getByDate(date);
+      if (res.success && res.data) {
+        setDateAttendanceRecords(res.data.records);
+        // Also map to AttendanceRecord array
+        const mapped = res.data.records
+          .filter((r) => r.isMarked)
+          .map((r) => ({
+            id: `att-${r.workerId}-${date}`,
+            workerId: r.workerId,
+            date,
+            status: r.status,
+            rateSnapshot: r.rateSnapshot,
+            notes: r.notes,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-          });
-        }
+          }));
+        setAttendances(mapped);
       }
-      return updated;
-    });
+    } catch (err: any) {
+      console.error('Failed to load attendance:', err);
+    }
+  }, [isAuthenticated]);
+
+  const refreshData = useCallback(async () => {
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const [workersRes, overviewRes, summariesRes, paymentsRes] = await Promise.all([
+        api.workers.list(),
+        api.finance.getOverview(),
+        api.finance.getSummaries(),
+        api.finance.getPayments(30),
+      ]);
+
+      if (workersRes.success) setWorkers(workersRes.data);
+      if (overviewRes.success) setFinanceOverview(overviewRes.data);
+      if (summariesRes.success) setFinanceSummaries(summariesRes.data);
+      if (paymentsRes.success) setPayments(paymentsRes.data);
+
+      await fetchAttendanceForDate(selectedDate);
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : "Ma'lumotlarni yuklashda xatolik yuz berdi";
+      setError(msg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, selectedDate, fetchAttendanceForDate]);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  useEffect(() => {
+    fetchAttendanceForDate(selectedDate);
+  }, [selectedDate, fetchAttendanceForDate]);
+
+  // Real API Mutations
+  const markAttendance = async (workerId: string, status: AttendanceStatus, notes?: string) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      await api.attendance.mark({
+        workerId,
+        date: selectedDate,
+        status,
+        notes: notes || null,
+      });
+
+      // Refetch attendance and finance data to guarantee honest server state
+      await Promise.all([
+        fetchAttendanceForDate(selectedDate),
+        api.finance.getOverview().then((res) => res.success && setFinanceOverview(res.data)),
+        api.finance.getSummaries().then((res) => res.success && setFinanceSummaries(res.data)),
+      ]);
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : 'Davomatni saqlashda xatolik';
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
   };
 
-  const recordPayment = (
+  const bulkMarkAttendance = async (status: AttendanceStatus) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      const active = workers.filter((w) => w.status === 'ACTIVE');
+      const records = active.map((w) => ({
+        workerId: w.id,
+        status,
+        notes: null,
+      }));
+
+      await api.attendance.bulkMark({
+        date: selectedDate,
+        records,
+      });
+
+      await Promise.all([
+        fetchAttendanceForDate(selectedDate),
+        api.finance.getOverview().then((res) => res.success && setFinanceOverview(res.data)),
+        api.finance.getSummaries().then((res) => res.success && setFinanceSummaries(res.data)),
+      ]);
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : 'Barcha davomatni saqlashda xatolik';
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const recordPayment = async (
     workerId: string,
     amount: number,
     paymentMethod: PaymentMethod,
     notes?: string
   ) => {
-    const worker = workers.find((w) => w.id === workerId);
-    if (!worker) return;
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
 
-    const newPayment: PaymentRecord = {
-      id: `pay-${Date.now()}`,
-      workerId,
-      amount: Number(amount),
-      paymentDate: selectedDate,
-      paymentMethod,
-      notes: notes || null,
-      createdAt: new Date().toISOString(),
-      workerName: worker.name,
-    };
+    try {
+      await api.finance.recordPayment({
+        workerId,
+        amount,
+        paymentDate: selectedDate,
+        paymentMethod,
+        notes: notes || null,
+      });
 
-    setPayments((prev) => [newPayment, ...prev]);
+      await Promise.all([
+        api.finance.getOverview().then((res) => res.success && setFinanceOverview(res.data)),
+        api.finance.getSummaries().then((res) => res.success && setFinanceSummaries(res.data)),
+        api.finance.getPayments(30).then((res) => res.success && setPayments(res.data)),
+      ]);
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : "To'lovni kiritishda xatolik";
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
   };
 
-  const addWorker = (input: WorkerCreateInput) => {
-    const newWorker: Worker = {
-      id: `worker-${Date.now()}`,
-      name: input.name,
-      phone: input.phone || null,
-      role: input.role,
-      dailyRate: Number(input.dailyRate),
-      status: 'ACTIVE',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setWorkers((prev) => [...prev, newWorker]);
+  const addWorker = async (input: WorkerCreateInput) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      const res = await api.workers.create(input);
+      if (res.success) {
+        setWorkers((prev) => [res.data, ...prev]);
+        await refreshData();
+      }
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : "Ishchi qo'shishda xatolik";
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
   };
 
-  const updateWorker = (id: string, input: WorkerUpdateInput) => {
-    setWorkers((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, ...input, updatedAt: new Date().toISOString() } : w))
-    );
+  const updateWorker = async (id: string, input: WorkerUpdateInput) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      const res = await api.workers.update(id, input);
+      if (res.success) {
+        setWorkers((prev) => prev.map((w) => (w.id === id ? res.data : w)));
+        await refreshData();
+      }
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : 'Ishchini yangilashda xatolik';
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
   };
 
-  const archiveWorker = (id: string) => {
-    setWorkers((prev) =>
-      prev.map((w) =>
-        w.id === id
-          ? { ...w, status: 'ARCHIVED', archivedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
-          : w
-      )
-    );
+  const archiveWorker = async (id: string) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      const res = await api.workers.archive(id);
+      if (res.success) {
+        setWorkers((prev) => prev.map((w) => (w.id === id ? res.data : w)));
+        await refreshData();
+      }
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : 'Ishchini arxivlashda xatolik';
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
   };
 
-  const unarchiveWorker = (id: string) => {
-    setWorkers((prev) =>
-      prev.map((w) =>
-        w.id === id
-          ? { ...w, status: 'ACTIVE', archivedAt: null, updatedAt: new Date().toISOString() }
-          : w
-      )
-    );
+  const unarchiveWorker = async (id: string) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    try {
+      const res = await api.workers.unarchive(id);
+      if (res.success) {
+        setWorkers((prev) => prev.map((w) => (w.id === id ? res.data : w)));
+        await refreshData();
+      }
+    } catch (err: any) {
+      const msg = err instanceof ApiError ? err.message : 'Ishchini faollashtirishda xatolik';
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
   };
 
-  const updateOwnerProfile = (fullName: string, workshopName: string) => {
-    setOwner((prev) => ({
-      ...prev,
-      fullName,
-      workshopName,
-      updatedAt: new Date().toISOString(),
-    }));
-  };
-
-  // Calculations
   const activeWorkers = workers.filter((w) => w.status === 'ACTIVE');
   const archivedWorkers = workers.filter((w) => w.status === 'ARCHIVED');
 
-  const todayStr = getTodayDateString();
-  const todayAttendances = attendances.filter((a) => a.date === todayStr && a.status === 'PRESENT');
+  const presentCount = dateAttendanceRecords.filter((r) => r.status === 'PRESENT').length;
   const todayAttendanceRatio = {
-    present: todayAttendances.length,
+    present: presentCount,
     total: activeWorkers.length,
-  };
-
-  // Financial calculations across all workers (including archived workers who retain historical balances)
-  const financeSummaries: WorkerFinanceSummary[] = workers.map((worker) => {
-    const presentRecords = attendances.filter(
-      (a) => a.workerId === worker.id && a.status === 'PRESENT'
-    );
-    const daysWorked = presentRecords.length;
-    // Calculated strictly from daily attendance and historical rate snapshots!
-    const totalAccruedSalary = presentRecords.reduce(
-      (sum, a) => sum + (a.rateSnapshot || worker.dailyRate),
-      0
-    );
-
-    const workerPayments = payments.filter((p) => p.workerId === worker.id);
-    const totalPaid = workerPayments.reduce((sum, p) => sum + p.amount, 0);
-    const balanceOwed = totalAccruedSalary - totalPaid;
-
-    return {
-      workerId: worker.id,
-      name: worker.name,
-      role: worker.role,
-      status: worker.status,
-      currentDailyRate: worker.dailyRate,
-      daysWorked,
-      totalAccruedSalary,
-      totalPaid,
-      balanceOwed,
-    };
-  });
-
-  const totalAccruedSalaries = financeSummaries.reduce((sum, s) => sum + s.totalAccruedSalary, 0);
-  const totalPaymentsDistributed = financeSummaries.reduce((sum, s) => sum + s.totalPaid, 0);
-  const totalPendingBalance = financeSummaries.reduce((sum, s) => sum + Math.max(0, s.balanceOwed), 0);
-
-  const financeOverview: WorkshopFinanceOverview = {
-    totalAccruedSalaries,
-    totalPaymentsDistributed,
-    totalPendingBalance,
-    activeWorkerCount: activeWorkers.length,
   };
 
   return (
     <AppStateContext.Provider
       value={{
-        owner,
         workers,
         attendances,
+        dateAttendanceRecords,
         payments,
         selectedDate,
         setSelectedDate,
+        isLoading,
+        isMutating,
+        error,
+        clearError: () => setError(null),
+        refreshData,
         markAttendance,
         bulkMarkAttendance,
         recordPayment,
@@ -442,7 +342,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         updateWorker,
         archiveWorker,
         unarchiveWorker,
-        updateOwnerProfile,
         financeSummaries,
         financeOverview,
         activeWorkers,

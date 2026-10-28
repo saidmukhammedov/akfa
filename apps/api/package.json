@@ -10,19 +10,27 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:push": "prisma db push",
-    "test": "node test-endpoints.js"
+    "test": "node test/phase2-integration.test.js",
+    "test:endpoints": "node test-endpoints.js"
   },
   "dependencies": {
     "@akfa/shared": "workspace:*",
     "@prisma/client": "^5.20.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.21.0"
+    "express": "^4.21.0",
+    "express-rate-limit": "^8.7.1",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.5.5",
     "prisma": "^5.20.0",
     "tsx": "^4.19.1",

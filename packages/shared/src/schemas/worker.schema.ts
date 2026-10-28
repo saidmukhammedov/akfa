@@ -5,7 +5,7 @@ export const workerStatusEnum = z.enum(['ACTIVE', 'ARCHIVED']);
 
 export const workerCreateSchema = z.object({
   name: z.string().trim().min(2, { message: "Ishchi ismi kamida 2 ta harfdan iborat bo'lishi kerak" }),
-  phone: z.string().trim().regex(/^(\+998)?\s?\(?[0-9]{2}\)?\s?[0-9]{3}-?[0-9]{2}-?[0-9]{2}$/, {
+  phone: z.string().trim().regex(/^(\+998)?[-\s]?\(?[0-9]{2}\)?[-\s]?[0-9]{3}[-\s]?[0-9]{2}[-\s]?[0-9]{2}$/, {
     message: "Telefon raqami formati noto'g'ri (masalan: +998 90 123 45 67)"
   }).optional().nullable().or(z.literal('')),
   role: workerRoleEnum,

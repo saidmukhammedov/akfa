@@ -2,7 +2,7 @@
   "name": "akfa-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "AKFA workshop management system - Phase 1 Monorepo",
+  "description": "AKFA workshop management system - Phase 2 Monorepo",
   "scripts": {
     "build:shared": "pnpm --filter @akfa/shared build",
     "build": "pnpm --filter @akfa/shared build && pnpm --filter @akfa/api build && pnpm --filter @akfa/web build",
@@ -12,7 +12,9 @@
     "dev": "pnpm --filter @akfa/shared build && pnpm --parallel --filter @akfa/api --filter @akfa/web dev",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
-    "prisma:generate": "pnpm --filter @akfa/api prisma:generate"
+    "prisma:generate": "pnpm --filter @akfa/api prisma:generate",
+    "prisma:migrate": "pnpm --filter @akfa/api prisma:migrate",
+    "prisma:deploy": "pnpm --filter @akfa/api prisma:deploy"
   },
   "packageManager": "pnpm@12.15.0",
   "devDependencies": {

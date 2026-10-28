@@ -1,12 +1,14 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAppState } from '../../context/AppStateContext';
+import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import { ShieldCheck, Calendar } from 'lucide-react';
+import { ShieldCheck, Calendar, LogOut } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { t, formatDate } = useLanguage();
-  const { owner, selectedDate } = useAppState();
+  const { selectedDate } = useAppState();
+  const { owner, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 bg-workshop-surface/90 backdrop-blur-md border-b border-workshop-border">
@@ -20,12 +22,14 @@ export const Header: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-bold text-workshop-text text-base sm:text-lg leading-tight">
-                  {owner.workshopName || t.app.title}
+                  {owner?.workshopName || t.app.title}
                 </h1>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                  {owner.fullName}
-                </span>
+                {owner && (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    {owner.fullName}
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-workshop-muted hidden md:block">
                 {t.app.subtitle}
@@ -33,14 +37,25 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Controls: Date indicator & Language Switcher */}
-          <div className="flex items-center gap-3">
+          {/* Right Controls: Date indicator, Language Switcher & Logout */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-workshop-muted bg-slate-100/80 px-3 py-1.5 rounded-clay-pill border border-slate-200">
               <Calendar className="w-3.5 h-3.5 text-slate-500" />
               <span>{formatDate(selectedDate, 'medium')}</span>
             </div>
 
             <LanguageSwitcher />
+
+            {owner && (
+              <button
+                type="button"
+                onClick={logout}
+                title={t.auth.logoutButton}
+                className="p-2 text-slate-500 hover:text-absent-600 hover:bg-slate-100 rounded-xl transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>

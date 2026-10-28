@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -8,16 +9,30 @@ generator client {
 }
 
 model Owner {
-  id           String   @id @default(uuid())
-  username     String   @unique
+  id           String         @id @default(uuid())
+  username     String         @unique
   passwordHash String
   fullName     String
-  workshopName String   @default("AKFA Ustaxonasi")
-  language     String   @default("uz") // 'uz' | 'ru'
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  workshopName String         @default("AKFA Ustaxonasi")
+  language     String         @default("uz") // 'uz' | 'ru'
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     RefreshToken[]
 
   @@map("owners")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  ownerId   String
+  owner     Owner     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([ownerId])
+  @@map("refresh_tokens")
 }
 
 model Worker {
@@ -25,7 +40,7 @@ model Worker {
   name        String
   phone       String?
   role        String        @default("usta") // 'usta' | 'shogird' | 'yordamchi' | 'ornatuvchi' | 'boshqa'
-  dailyRate   Int           // Daily wage rate in UZS (so'm)
+  dailyRate   Decimal       @db.Decimal(14, 2) // Daily wage rate in UZS (so'm)
   status      String        @default("ACTIVE") // 'ACTIVE' | 'ARCHIVED'
   archivedAt  DateTime?
   createdAt   DateTime      @default(now())
@@ -41,10 +56,10 @@ model Worker {
 model Attendance {
   id           String   @id @default(uuid())
   workerId     String
-  worker       Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  worker       Worker   @relation(fields: [workerId], references: [id], onDelete: Restrict)
   date         String   // ISO YYYY-MM-DD format
   status       String   @default("PRESENT") // 'PRESENT' | 'ABSENT'
-  rateSnapshot Int      // Historical snapshot of worker's daily rate on this attendance date
+  rateSnapshot Decimal  @db.Decimal(14, 2) // Historical snapshot of daily rate on attendance date
   notes        String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -58,8 +73,8 @@ model Attendance {
 model Payment {
   id            String   @id @default(uuid())
   workerId      String
-  worker        Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
-  amount        Int      // Payment amount in UZS (so'm), supports partial payment
+  worker        Worker   @relation(fields: [workerId], references: [id], onDelete: Restrict)
+  amount        Decimal  @db.Decimal(14, 2) // Decimal-safe monetary arithmetic, partial & full
   paymentDate   String   // ISO YYYY-MM-DD format
   paymentMethod String   @default("CASH") // 'CASH' | 'CARD' | 'BANK_TRANSFER'
   notes         String?

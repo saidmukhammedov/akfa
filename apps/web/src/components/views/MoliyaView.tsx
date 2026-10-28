@@ -35,6 +35,7 @@ export const MoliyaView: React.FC = () => {
   const [paymentDate, setPaymentDate] = useState<string>(getTodayDateString());
   const [notes, setNotes] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const openPaymentModal = (workerId?: string) => {
     setSelectedWorkerId(workerId || (workers[0]?.id ?? ''));
@@ -56,7 +57,7 @@ export const MoliyaView: React.FC = () => {
     setIsPaymentModalOpen(true);
   };
 
-  const handleRecordPayment = (e: React.FormEvent) => {
+  const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = Number(amount);
     if (!selectedWorkerId) {
@@ -68,8 +69,17 @@ export const MoliyaView: React.FC = () => {
       return;
     }
 
-    recordPayment(selectedWorkerId, numAmount, paymentMethod, notes.trim() || undefined);
-    setIsPaymentModalOpen(false);
+    setIsSubmitting(true);
+    setFormError('');
+
+    try {
+      await recordPayment(selectedWorkerId, numAmount, paymentMethod, notes.trim() || undefined);
+      setIsPaymentModalOpen(false);
+    } catch (err: any) {
+      setFormError(err.message || "To'lovni kiritishda xatolik yuz berdi");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const setQuickAmount = (val: number) => {
@@ -384,8 +394,8 @@ export const MoliyaView: React.FC = () => {
             >
               {t.common.cancel}
             </Button>
-            <Button type="submit" variant="primary" size="md">
-              {t.common.save}
+            <Button type="submit" variant="primary" size="md" disabled={isSubmitting}>
+              {isSubmitting ? t.common.loading : t.common.save}
             </Button>
           </div>
         </form>

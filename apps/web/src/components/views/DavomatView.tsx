@@ -26,6 +26,7 @@ export const DavomatView: React.FC = () => {
     setSelectedDate,
     markAttendance,
     bulkMarkAttendance,
+    isMutating,
   } = useAppState();
 
   const [activeNoteWorkerId, setActiveNoteWorkerId] = useState<string | null>(null);
@@ -42,14 +43,22 @@ export const DavomatView: React.FC = () => {
     setSelectedDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
   };
 
-  const handleToggle = (workerId: string, newStatus: 'PRESENT' | 'ABSENT') => {
-    markAttendance(workerId, newStatus);
-    triggerSavedFeedback();
+  const handleToggle = async (workerId: string, newStatus: 'PRESENT' | 'ABSENT') => {
+    try {
+      await markAttendance(workerId, newStatus);
+      triggerSavedFeedback();
+    } catch {
+      // Error surfaced via AppStateContext
+    }
   };
 
-  const handleBulkMarkPresent = () => {
-    bulkMarkAttendance('PRESENT');
-    triggerSavedFeedback();
+  const handleBulkMarkPresent = async () => {
+    try {
+      await bulkMarkAttendance('PRESENT');
+      triggerSavedFeedback();
+    } catch {
+      // Error surfaced via AppStateContext
+    }
   };
 
   const triggerSavedFeedback = () => {
@@ -62,19 +71,23 @@ export const DavomatView: React.FC = () => {
     setNoteText(currentNote || '');
   };
 
-  const saveNote = () => {
+  const saveNote = async () => {
     if (activeNoteWorkerId) {
       const record = attendances.find(
         (a) => a.workerId === activeNoteWorkerId && a.date === selectedDate
       );
-      markAttendance(
-        activeNoteWorkerId,
-        record ? record.status : 'ABSENT',
-        noteText.trim() || undefined
-      );
-      setActiveNoteWorkerId(null);
-      setNoteText('');
-      triggerSavedFeedback();
+      try {
+        await markAttendance(
+          activeNoteWorkerId,
+          record ? record.status : 'ABSENT',
+          noteText.trim() || undefined
+        );
+        setActiveNoteWorkerId(null);
+        setNoteText('');
+        triggerSavedFeedback();
+      } catch {
+        // Error surfaced via AppStateContext
+      }
     }
   };
 
@@ -135,6 +148,7 @@ export const DavomatView: React.FC = () => {
             variant="secondary"
             size="sm"
             onClick={handleBulkMarkPresent}
+            disabled={isMutating}
             className="text-emerald-700 hover:bg-emerald-50 border-emerald-200 shadow-sm"
           >
             <CheckCheck className="w-4 h-4 text-emerald-600" />
@@ -240,6 +254,7 @@ export const DavomatView: React.FC = () => {
                     <ClayAttendanceToggle
                       status={currentStatus}
                       onChange={(newStatus) => handleToggle(worker.id, newStatus)}
+                      disabled={isMutating}
                     />
                   </div>
                 </div>

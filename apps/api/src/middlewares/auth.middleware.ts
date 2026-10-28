@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import { verifyAccessToken } from '../services/auth.service.js';
+import { prisma } from '../services/prisma.js';
 
 export interface AuthenticatedRequest extends Request {
   owner?: {
@@ -6,28 +8,16 @@ export interface AuthenticatedRequest extends Request {
     username: string;
     fullName: string;
     workshopName: string;
-    language: 'uz' | 'ru';
+    language: string;
   };
 }
 
-export function requireOwnerAuth(
+export async function requireOwnerAuth(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ) {
   const authHeader = req.headers.authorization;
-
-  // Development bypass or valid token check
-  if (process.env.NODE_ENV === 'development' && (!authHeader || authHeader === 'Bearer dev-token')) {
-    req.owner = {
-      id: 'owner-default-1',
-      username: 'admin',
-      fullName: 'Alisher Qodirov',
-      workshopName: 'AKFA Rom va Eshiklar Tsexi',
-      language: 'uz',
-    };
-    return next();
-  }
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({
@@ -40,18 +30,46 @@ export function requireOwnerAuth(
   if (!token) {
     return res.status(401).json({
       success: false,
-      error: 'Noto\'g\'ri token formati',
+      error: "Noto'g'ri token formati",
     });
   }
 
-  // Set authenticated owner on request
-  req.owner = {
-    id: 'owner-default-1',
-    username: 'admin',
-    fullName: 'Alisher Qodirov',
-    workshopName: 'AKFA Rom va Eshiklar Tsexi',
-    language: 'uz',
-  };
+  try {
+    const payload = verifyAccessToken(token);
 
-  next();
+    // Verify owner still exists in database
+    const owner = await prisma.owner.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        workshopName: true,
+        language: true,
+      },
+    });
+
+    if (!owner) {
+      return res.status(401).json({
+        success: false,
+        error: "Foydalanuvchi hisobi topilmadi yoki o'chirilgan",
+      });
+    }
+
+    req.owner = owner;
+    next();
+  } catch (err: any) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        error: 'Sessiya muddati tugagan (Token expired)',
+        code: 'TOKEN_EXPIRED',
+      });
+    }
+    return res.status(401).json({
+      success: false,
+      error: "Yaroqsiz avtorizatsiya tokeni",
+      code: 'INVALID_TOKEN',
+    });
+  }
 }

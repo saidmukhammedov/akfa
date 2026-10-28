@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAppState } from '../../context/AppStateContext';
+import { useAuth } from '../../context/AuthContext';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -22,15 +23,14 @@ import {
 
 export const SozlamalarView: React.FC = () => {
   const { t, lang, setLang, formatCurrency } = useLanguage();
+  const { owner, updateOwnerProfile } = useAuth();
   const {
-    owner,
     activeWorkers,
     archivedWorkers,
     addWorker,
     updateWorker,
     archiveWorker,
     unarchiveWorker,
-    updateOwnerProfile,
   } = useAppState();
 
   const [activeSubTab, setActiveSubTab] = useState<'workers' | 'profile' | 'system'>('workers');
@@ -44,11 +44,13 @@ export const SozlamalarView: React.FC = () => {
   const [role, setRole] = useState<WorkerRole>('usta');
   const [dailyRate, setDailyRate] = useState('');
   const [workerFormError, setWorkerFormError] = useState('');
+  const [isSubmittingWorker, setIsSubmittingWorker] = useState(false);
 
   // Owner Profile Form State
-  const [workshopName, setWorkshopName] = useState(owner.workshopName);
-  const [fullName, setFullName] = useState(owner.fullName);
+  const [workshopName, setWorkshopName] = useState(owner?.workshopName || '');
+  const [fullName, setFullName] = useState(owner?.fullName || '');
   const [profileSuccessMsg, setProfileSuccessMsg] = useState(false);
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
 
   const openAddWorkerModal = () => {
     setEditingWorkerId(null);
@@ -70,7 +72,7 @@ export const SozlamalarView: React.FC = () => {
     setIsWorkerModalOpen(true);
   };
 
-  const handleWorkerSubmit = (e: React.FormEvent) => {
+  const handleWorkerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setWorkerFormError("Ishchi ismini kiriting");
@@ -82,30 +84,49 @@ export const SozlamalarView: React.FC = () => {
       return;
     }
 
-    if (editingWorkerId) {
-      updateWorker(editingWorkerId, {
-        name: name.trim(),
-        phone: phone.trim() || null,
-        role,
-        dailyRate: rateNum,
-      });
-    } else {
-      addWorker({
-        name: name.trim(),
-        phone: phone.trim() || null,
-        role,
-        dailyRate: rateNum,
-      });
-    }
+    setIsSubmittingWorker(true);
+    setWorkerFormError('');
 
-    setIsWorkerModalOpen(false);
+    try {
+      if (editingWorkerId) {
+        await updateWorker(editingWorkerId, {
+          name: name.trim(),
+          phone: phone.trim() || null,
+          role,
+          dailyRate: rateNum,
+        });
+      } else {
+        await addWorker({
+          name: name.trim(),
+          phone: phone.trim() || null,
+          role,
+          dailyRate: rateNum,
+        });
+      }
+      setIsWorkerModalOpen(false);
+    } catch (err: any) {
+      setWorkerFormError(err.message || "Xatolik yuz berdi");
+    } finally {
+      setIsSubmittingWorker(false);
+    }
   };
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateOwnerProfile(fullName, workshopName);
-    setProfileSuccessMsg(true);
-    setTimeout(() => setProfileSuccessMsg(false), 3000);
+    setIsSubmittingProfile(true);
+    try {
+      await updateOwnerProfile({
+        fullName,
+        workshopName,
+        language: lang,
+      });
+      setProfileSuccessMsg(true);
+      setTimeout(() => setProfileSuccessMsg(false), 3000);
+    } catch (err: any) {
+      console.error('Failed to update owner profile:', err);
+    } finally {
+      setIsSubmittingProfile(false);
+    }
   };
 
   const displayedWorkers = workerListFilter === 'ACTIVE' ? activeWorkers : archivedWorkers;
@@ -359,8 +380,8 @@ export const SozlamalarView: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex justify-end">
-                <Button type="submit" variant="primary" size="md">
-                  {t.sozlamalar.saveProfileBtn}
+                <Button type="submit" variant="primary" size="md" disabled={isSubmittingProfile}>
+                  {isSubmittingProfile ? t.common.loading : t.sozlamalar.saveProfileBtn}
                 </Button>
               </div>
             </form>
@@ -484,8 +505,8 @@ export const SozlamalarView: React.FC = () => {
             >
               {t.common.cancel}
             </Button>
-            <Button type="submit" variant="primary" size="md">
-              {t.common.save}
+            <Button type="submit" variant="primary" size="md" disabled={isSubmittingWorker}>
+              {isSubmittingWorker ? t.common.loading : t.common.save}
             </Button>
           </div>
         </form>

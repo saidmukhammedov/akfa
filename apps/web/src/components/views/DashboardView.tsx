@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAppState } from '../../context/AppStateContext';
+import { useAuth } from '../../context/AuthContext';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -21,8 +22,8 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
   const { t, formatCurrency, formatDate } = useLanguage();
+  const { owner } = useAuth();
   const {
-    owner,
     activeWorkers,
     attendances,
     payments,
@@ -42,10 +43,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-workshop-text">
-            {t.dashboard.welcome}, {owner.fullName}
+            {t.dashboard.welcome}, {owner?.fullName || ''}
           </h2>
           <p className="text-xs sm:text-sm text-workshop-muted mt-0.5">
-            {owner.workshopName} — {formatDate(selectedDate, 'full')}
+            {owner?.workshopName || t.app.title} — {formatDate(selectedDate, 'full')}
           </p>
         </div>
         <div className="flex items-center gap-2">
