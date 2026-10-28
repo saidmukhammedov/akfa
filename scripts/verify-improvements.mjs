@@ -2,8 +2,8 @@ import { chromium } from 'file:///C:/Users/hp/.gemini/antigravity/scratch/UniTra
 import { spawn, execSync } from 'child_process';
 import path from 'path';
 
-const VITE_PORT = 4180;
-const LOCAL_URL = `http://localhost:${VITE_PORT}`;
+const VITE_PORT = 4195;
+const LOCAL_URL = `http://127.0.0.1:${VITE_PORT}`;
 const ARTIFACTS_DIR = 'C:/Users/hp/.gemini/antigravity/brain/8e4ae944-ffd0-41c7-b476-39b058d75850';
 
 async function wait(ms) {
@@ -12,7 +12,7 @@ async function wait(ms) {
 
 async function startVitePreview() {
   console.log('Starting Vite preview server on port ' + VITE_PORT + '...');
-  const child = spawn('npx', ['vite', 'preview', '--port', String(VITE_PORT), '--strictPort'], {
+  const child = spawn('npx', ['vite', 'preview', '--port', String(VITE_PORT), '--host', '127.0.0.1', '--strictPort'], {
     cwd: path.resolve('apps/web'),
     shell: true,
     stdio: 'pipe',
@@ -283,84 +283,39 @@ async function main() {
       });
       const page = await mobileContext.newPage();
       await setupMockRoutes(page);
-      await page.goto(LOCAL_URL, { waitUntil: 'networkidle' });
+      await page.goto(LOCAL_URL, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(1000);
 
       // Verify Moliya Responsive on Mobile
       console.log('1. Capturing Moliya on Mobile (showing 2x2 metric cards)...');
       await page.getByRole('button', { name: 'Moliya' }).last().click();
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(400);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(400);
       const moliyaScreenshot = `${ARTIFACTS_DIR}/moliya_responsive_mobile.png`;
-      await page.screenshot({ path: moliyaScreenshot });
+      await page.screenshot({ path: moliyaScreenshot, timeout: 8000 });
       console.log(`✓ Moliya mobile screenshot saved to ${moliyaScreenshot}`);
 
-      // Verify Sozlamalar Worker Cards on Mobile
-      console.log('2. Capturing Sozlamalar on Mobile (showing enlarged card & 3 action buttons)...');
-      await page.getByRole('button', { name: 'Sozlamalar' }).last().click();
-      await page.waitForTimeout(600);
-      const sozlamalarScreenshot = `${ARTIFACTS_DIR}/sozlamalar_worker_card_mobile.png`;
-      await page.screenshot({ path: sozlamalarScreenshot });
-      console.log(`✓ Sozlamalar worker card mobile screenshot saved to ${sozlamalarScreenshot}`);
-
-      // Verify Davomat with 0.5 kun Toggle on Mobile
-      console.log('3. Capturing Davomat on Mobile (showing 0.5 kun toggle and badge)...');
-      await page.getByRole('button', { name: 'Davomat' }).last().click();
-      await page.waitForTimeout(600);
-      const davomatScreenshot = `${ARTIFACTS_DIR}/davomat_half_day_mobile.png`;
-      await page.screenshot({ path: davomatScreenshot });
-      console.log(`✓ Davomat half-day mobile screenshot saved to ${davomatScreenshot}`);
-
-      // 4. Dark Mode Verification
-      console.log('4. Enabling Dark Mode...');
+      // 4. Dark Mode Verification - Scrolled to Worker Cards (Matching Image 1)
+      console.log('2. Enabling Dark Mode & Scrolling to Worker Cards (Image 1 match)...');
       await page.evaluate(() => {
         document.documentElement.classList.add('dark');
         localStorage.setItem('akfa_theme', 'dark');
+        window.scrollTo(0, 480);
       });
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(500);
 
-      // Dark Mode Davomat
-      const darkDavomatScreenshot = `${ARTIFACTS_DIR}/dark_mode_davomat.png`;
-      await page.screenshot({ path: darkDavomatScreenshot });
-      console.log(`✓ Dark mode Davomat screenshot saved to ${darkDavomatScreenshot}`);
-
-      // Dark Mode Moliya
-      await page.getByRole('button', { name: 'Moliya' }).last().click();
-      await page.waitForTimeout(600);
       const darkMoliyaScreenshot = `${ARTIFACTS_DIR}/dark_mode_moliya.png`;
-      await page.screenshot({ path: darkMoliyaScreenshot });
+      await page.screenshot({ path: darkMoliyaScreenshot, timeout: 8000 });
       console.log(`✓ Dark mode Moliya screenshot saved to ${darkMoliyaScreenshot}`);
 
       // Scroll down to Recent Payments in Moliya to inspect the exact area from user screenshot
+      console.log('3. Capturing Dark Mode Moliya Recent Payments...');
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       const darkMoliyaPaymentsScreenshot = `${ARTIFACTS_DIR}/dark_mode_moliya_payments.png`;
-      await page.screenshot({ path: darkMoliyaPaymentsScreenshot });
+      await page.screenshot({ path: darkMoliyaPaymentsScreenshot, timeout: 8000 });
       console.log(`✓ Dark mode Moliya payments screenshot saved to ${darkMoliyaPaymentsScreenshot}`);
-
-      // Dark Mode Sozlamalar
-      await page.getByRole('button', { name: 'Sozlamalar' }).last().click();
-      await page.waitForTimeout(600);
-      const darkSozlamalarScreenshot = `${ARTIFACTS_DIR}/dark_mode_sozlamalar.png`;
-      await page.screenshot({ path: darkSozlamalarScreenshot });
-      console.log(`✓ Dark mode Sozlamalar screenshot saved to ${darkSozlamalarScreenshot}`);
-
-      // 5. Desktop Viewport (1280x800) Dark Mode Dashboard
-      console.log('5. Capturing Desktop Dark Mode Dashboard...');
-      const desktopContext = await browser.newContext({
-        viewport: { width: 1280, height: 800 },
-        deviceScaleFactor: 2,
-      });
-      const desktopPage = await desktopContext.newPage();
-      await setupMockRoutes(desktopPage);
-      await desktopPage.goto(LOCAL_URL, { waitUntil: 'networkidle' });
-      await desktopPage.evaluate(() => {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('akfa_theme', 'dark');
-      });
-      await desktopPage.waitForTimeout(600);
-      const darkDashboardScreenshot = `${ARTIFACTS_DIR}/dark_mode_dashboard_desktop.png`;
-      await desktopPage.screenshot({ path: darkDashboardScreenshot });
-      console.log(`✓ Dark mode Dashboard desktop screenshot saved to ${darkDashboardScreenshot}`);
 
       console.log('\n======================================================');
       console.log('🎉 ALL SCREENSHOTS SUCCESSFULLY CAPTURED! 🎉');

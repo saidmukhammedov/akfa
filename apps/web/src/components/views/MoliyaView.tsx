@@ -172,25 +172,25 @@ export const MoliyaView: React.FC = () => {
         padding="none"
       >
         {/* Mobile View: High-clarity Claymorphism Worker Cards */}
-        <div className="block md:hidden divide-y divide-white/70 dark:divide-slate-800 p-3 space-y-3">
+        <div className="block md:hidden p-4 sm:p-6 space-y-3.5">
           {financeSummaries.map((summary) => {
             const isOverpaid = summary.balanceOwed < 0;
             return (
               <div
                 key={summary.workerId}
-                className="p-4 rounded-2xl glass-slot space-y-3 border border-white/70 dark:border-slate-800 first:pt-4"
+                className="p-4 rounded-2xl glass-slot space-y-3.5 border border-white/70 dark:border-slate-800 shadow-sm"
               >
-                {/* Header: Name, Role, Action */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="clay-avatar w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-800 dark:text-slate-100 text-sm flex-shrink-0">
-                      {summary.name.charAt(0)}
+                {/* Header: Avatar, Name & Role on Left; Daily Rate Pill on Right */}
+                <div className="flex items-center justify-between gap-3 pb-3 border-b border-white/50 dark:border-slate-800/70">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="clay-avatar w-11 h-11 rounded-2xl flex items-center justify-center font-black text-slate-800 dark:text-slate-100 text-base shrink-0">
+                      {summary.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-black text-slate-900 dark:text-white text-sm truncate">
-                          {summary.name}
-                        </span>
+                      <h4 className="text-base font-black text-slate-900 dark:text-white truncate leading-tight">
+                        {summary.name}
+                      </h4>
+                      <div className="flex items-center gap-1.5 mt-1">
                         <Badge role={summary.role} size="sm" />
                         {summary.status === 'ARCHIVED' && (
                           <span className="text-[10px] font-black text-slate-500 bg-slate-200/70 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-300/60 dark:border-slate-700">
@@ -198,26 +198,23 @@ export const MoliyaView: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap">
-                        {t.moliya.tableDailyRate}: {formatCurrency(summary.currentDailyRate)}
-                      </span>
                     </div>
                   </div>
 
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => openPaymentModal(summary.workerId)}
-                    className="text-xs font-black rounded-xl shrink-0 px-3 py-1.5 h-9"
-                  >
-                    <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>{t.moliya.recordPaymentBtn}</span>
-                  </Button>
+                  {/* Daily Rate Pill */}
+                  <div className="shrink-0 text-right px-2.5 py-1.5 rounded-xl bg-white/70 dark:bg-slate-800/80 border border-white/80 dark:border-slate-700/80 shadow-sm">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 leading-none">
+                      {t.moliya.tableDailyRate}
+                    </div>
+                    <div className="text-xs font-black text-slate-800 dark:text-slate-200 mt-1 leading-none whitespace-nowrap">
+                      {formatCurrency(summary.currentDailyRate)}
+                    </div>
+                  </div>
                 </div>
 
                 {/* 2x2 Financial Metrics Grid */}
                 <div className="grid grid-cols-2 gap-2.5 text-xs">
-                  <div className="p-2.5 sm:p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                  <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
                       {t.moliya.tableDaysWorked}
                     </span>
@@ -226,7 +223,7 @@ export const MoliyaView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="p-2.5 sm:p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                  <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
                       {t.moliya.tableAccrued}
                     </span>
@@ -235,7 +232,7 @@ export const MoliyaView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="p-2.5 sm:p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                  <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
                       {t.moliya.tablePaid}
                     </span>
@@ -244,7 +241,7 @@ export const MoliyaView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="p-2.5 sm:p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                  <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
                       {t.moliya.tableBalance}
                     </span>
@@ -263,6 +260,17 @@ export const MoliyaView: React.FC = () => {
                     )}
                   </div>
                 </div>
+
+                {/* Full-width Action Button: To'lov berish */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => openPaymentModal(summary.workerId)}
+                  className="w-full justify-center py-2.5 rounded-xl text-xs font-black shadow-clay-btn gap-2"
+                >
+                  <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+                  <span>{t.moliya.recordPaymentBtn}</span>
+                </Button>
               </div>
             );
           })}
@@ -351,7 +359,7 @@ export const MoliyaView: React.FC = () => {
             Hozircha kiritilgan to'lovlar mavjud emas.
           </p>
         ) : (
-          <div className="p-3.5 sm:p-5 space-y-2.5">
+          <div className="p-4 sm:p-6 space-y-3">
             {payments.map((p) => {
               const methodIcon =
                 p.paymentMethod === 'CARD' ? (
