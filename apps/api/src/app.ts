@@ -6,7 +6,38 @@ import { errorHandler } from './middlewares/error.middleware.js';
 export function createApp() {
   const app = express();
 
-  app.use(cors());
+  const rawClientUrl = process.env.CLIENT_URL || '';
+  const configuredOrigins = rawClientUrl
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const allowedOrigins = [
+    ...configuredOrigins,
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+  ];
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Allow requests with no origin (e.g. mobile apps, curl, server-to-server health checks)
+        if (!origin) return callback(null, true);
+        if (
+          allowedOrigins.includes(origin) ||
+          origin.endsWith('.vercel.app') ||
+          origin.includes('localhost') ||
+          origin.includes('127.0.0.1')
+        ) {
+          return callback(null, true);
+        }
+        return callback(new Error(`Origin ${origin} not allowed by CORS`));
+      },
+      credentials: true,
+    })
+  );
+
   app.use(express.json());
 
   // Mount API routes

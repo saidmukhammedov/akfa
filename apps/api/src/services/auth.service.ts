@@ -31,14 +31,14 @@ export function verifyAccessToken(token: string): { sub: string; username: strin
   return jwt.verify(token, JWT_SECRET) as { sub: string; username: string };
 }
 
-export async function createRefreshToken(ownerId: string): Promise<string> {
+export async function createRefreshToken(ownerId: string, client: any = prisma): Promise<string> {
   const rawToken = crypto.randomBytes(40).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
 
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + REFRESH_DAYS);
 
-  await prisma.refreshToken.create({
+  await client.refreshToken.create({
     data: {
       ownerId,
       tokenHash,
@@ -124,38 +124,47 @@ export async function setupInitialOwner(data: {
   workshopName?: string;
   language?: string;
 }) {
-  const existingCount = await countOwners();
-  if (existingCount > 0) {
-    const error: any = new Error("Ustaxona egasi allaqachon mavjud. Yangi ro'yxatdan o'tish taqiqlangan.");
-    error.statusCode = 403;
-    throw error;
-  }
+  return prisma.$transaction(async (tx) => {
+    // Acquire PostgreSQL advisory transaction lock to serialize concurrent setup attempts
+    try {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(424242);`;
+    } catch {
+      // Graceful fallback for non-Postgres test environments
+    }
 
-  const passwordHash = await hashPassword(data.password);
-  const owner = await prisma.owner.create({
-    data: {
-      username: data.username,
-      passwordHash,
-      fullName: data.fullName,
-      workshopName: data.workshopName || 'AKFA Ustaxonasi',
-      language: data.language || 'uz',
-    },
+    const existingCount = await tx.owner.count();
+    if (existingCount > 0) {
+      const error: any = new Error("Ustaxona egasi allaqachon mavjud. Yangi ro'yxatdan o'tish taqiqlangan.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const passwordHash = await hashPassword(data.password);
+    const owner = await tx.owner.create({
+      data: {
+        username: data.username,
+        passwordHash,
+        fullName: data.fullName,
+        workshopName: data.workshopName || 'AKFA Ustaxonasi',
+        language: data.language || 'uz',
+      },
+    });
+
+    const accessToken = generateAccessToken({ id: owner.id, username: owner.username });
+    const refreshToken = await createRefreshToken(owner.id, tx);
+
+    return {
+      owner: {
+        id: owner.id,
+        username: owner.username,
+        fullName: owner.fullName,
+        workshopName: owner.workshopName,
+        language: owner.language,
+      },
+      accessToken,
+      refreshToken,
+    };
   });
-
-  const accessToken = generateAccessToken({ id: owner.id, username: owner.username });
-  const refreshToken = await createRefreshToken(owner.id);
-
-  return {
-    owner: {
-      id: owner.id,
-      username: owner.username,
-      fullName: owner.fullName,
-      workshopName: owner.workshopName,
-      language: owner.language,
-    },
-    accessToken,
-    refreshToken,
-  };
 }
 
 export async function seedInitialOwnerIfMissing() {

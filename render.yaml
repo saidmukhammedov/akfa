@@ -1,0 +1,29 @@
+# Render Blueprint specification for AKFA Staging API
+services:
+  - type: web
+    name: akfa-api-staging
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: bash scripts/render-build.sh
+    startCommand: bash scripts/render-start.sh
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: REFRESH_TOKEN_EXPIRES_DAYS
+        value: 7
+      - key: CLIENT_URL
+        sync: false
