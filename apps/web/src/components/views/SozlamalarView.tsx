@@ -20,11 +20,12 @@ import {
   Check,
   Trash2,
   AlertCircle,
+  LogOut,
 } from 'lucide-react';
 
 export const SozlamalarView: React.FC = () => {
   const { t, lang, setLang, formatCurrency } = useLanguage();
-  const { owner, updateOwnerProfile } = useAuth();
+  const { owner, updateOwnerProfile, logout } = useAuth();
   const {
     activeWorkers,
     archivedWorkers,
@@ -467,8 +468,18 @@ export const SozlamalarView: React.FC = () => {
                 <ThemeSwitcher />
               </div>
 
-              <div className="pt-5 border-t border-white/60 dark:border-slate-800 flex justify-end">
-                <Button type="submit" variant="primary" size="md" disabled={isSubmittingProfile} className="h-12 px-6 rounded-2xl">
+              <div className="pt-5 border-t border-white/60 dark:border-slate-800 flex flex-col-reverse sm:flex-row justify-between items-center gap-3">
+                <Button
+                  type="button"
+                  variant="danger"
+                  size="md"
+                  onClick={logout}
+                  className="h-12 px-5 rounded-2xl flex items-center justify-center gap-2 w-full sm:w-auto"
+                >
+                  <LogOut className="w-4 h-4 stroke-[2.2]" />
+                  <span>{t.auth.logoutButton || 'Chiqish'}</span>
+                </Button>
+                <Button type="submit" variant="primary" size="md" disabled={isSubmittingProfile} className="h-12 px-6 rounded-2xl w-full sm:w-auto">
                   {isSubmittingProfile ? t.common.loading : t.sozlamalar.saveProfileBtn}
                 </Button>
               </div>

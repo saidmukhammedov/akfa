@@ -54,25 +54,51 @@ interface AppStateContextType {
   todayAttendanceRatio: { present: number; total: number };
 }
 
+const CACHE_KEYS = {
+  WORKERS: 'akfa_cache_workers',
+  OVERVIEW: 'akfa_cache_overview',
+  SUMMARIES: 'akfa_cache_summaries',
+  PAYMENTS: 'akfa_cache_payments',
+  DATE_RECORDS: 'akfa_cache_date_records',
+  ATTENDANCES: 'akfa_cache_attendances',
+};
+
+const getCache = <T,>(key: string, fallback: T): T => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return fallback;
+};
+
+const setCache = <T,>(key: string, value: T) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {}
+};
+
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
 export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
-  const [workers, setWorkers] = useState<Worker[]>([]);
-  const [dateAttendanceRecords, setDateAttendanceRecords] = useState<DateAttendanceRecord[]>([]);
-  const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
-  const [payments, setPayments] = useState<PaymentRecord[]>([]);
-  const [financeSummaries, setFinanceSummaries] = useState<WorkerFinanceSummary[]>([]);
-  const [financeOverview, setFinanceOverview] = useState<WorkshopFinanceOverview>({
-    totalAccruedSalaries: 0,
-    totalPaymentsDistributed: 0,
-    totalPendingBalance: 0,
-    activeWorkerCount: 0,
-  });
+  // Instant zero-delay startup with local cache
+  const [workers, setWorkers] = useState<Worker[]>(() => getCache(CACHE_KEYS.WORKERS, []));
+  const [dateAttendanceRecords, setDateAttendanceRecords] = useState<DateAttendanceRecord[]>(() => getCache(CACHE_KEYS.DATE_RECORDS, []));
+  const [attendances, setAttendances] = useState<AttendanceRecord[]>(() => getCache(CACHE_KEYS.ATTENDANCES, []));
+  const [payments, setPayments] = useState<PaymentRecord[]>(() => getCache(CACHE_KEYS.PAYMENTS, []));
+  const [financeSummaries, setFinanceSummaries] = useState<WorkerFinanceSummary[]>(() => getCache(CACHE_KEYS.SUMMARIES, []));
+  const [financeOverview, setFinanceOverview] = useState<WorkshopFinanceOverview>(() =>
+    getCache(CACHE_KEYS.OVERVIEW, {
+      totalAccruedSalaries: 0,
+      totalPaymentsDistributed: 0,
+      totalPendingBalance: 0,
+      activeWorkerCount: 0,
+    })
+  );
 
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isMutating, setIsMutating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,6 +108,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
       const res = await api.attendance.getByDate(date);
       if (res.success && res.data) {
         setDateAttendanceRecords(res.data.records);
+        setCache(CACHE_KEYS.DATE_RECORDS, res.data.records);
         // Also map to AttendanceRecord array
         const mapped = res.data.records
           .filter((r) => r.isMarked)
@@ -97,6 +124,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             updatedAt: new Date().toISOString(),
           }));
         setAttendances(mapped);
+        setCache(CACHE_KEYS.ATTENDANCES, mapped);
       }
     } catch (err: any) {
       console.error('Failed to load attendance:', err);
@@ -109,9 +137,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-
     try {
       const [workersRes, overviewRes, summariesRes, paymentsRes] = await Promise.all([
         api.workers.list(),
@@ -120,10 +145,22 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         api.finance.getPayments(30),
       ]);
 
-      if (workersRes.success) setWorkers(workersRes.data);
-      if (overviewRes.success) setFinanceOverview(overviewRes.data);
-      if (summariesRes.success) setFinanceSummaries(summariesRes.data);
-      if (paymentsRes.success) setPayments(paymentsRes.data);
+      if (workersRes.success) {
+        setWorkers(workersRes.data);
+        setCache(CACHE_KEYS.WORKERS, workersRes.data);
+      }
+      if (overviewRes.success) {
+        setFinanceOverview(overviewRes.data);
+        setCache(CACHE_KEYS.OVERVIEW, overviewRes.data);
+      }
+      if (summariesRes.success) {
+        setFinanceSummaries(summariesRes.data);
+        setCache(CACHE_KEYS.SUMMARIES, summariesRes.data);
+      }
+      if (paymentsRes.success) {
+        setPayments(paymentsRes.data);
+        setCache(CACHE_KEYS.PAYMENTS, paymentsRes.data);
+      }
 
       await fetchAttendanceForDate(selectedDate);
     } catch (err: any) {

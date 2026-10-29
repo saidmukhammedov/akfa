@@ -19,50 +19,56 @@ export async function requireOwnerAuth(
 ) {
   const authHeader = req.headers.authorization;
 
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
-    if (token) {
-      try {
-        const payload = verifyAccessToken(token);
-        const owner = await prisma.owner.findUnique({
-          where: { id: payload.sub },
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-            workshopName: true,
-            language: true,
-          },
-        });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      error: 'Avtorizatsiya talab qilinadi (Token mavjud emas)',
+    });
+  }
 
-        if (owner) {
-          req.owner = owner;
-          return next();
-        }
-      } catch (err: any) {
-        // If token expired or invalid, fall through to default owner
-      }
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: "Noto'g'ri token formati",
+    });
+  }
+
+  try {
+    const payload = verifyAccessToken(token);
+
+    const owner = await prisma.owner.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        username: true,
+        fullName: true,
+        workshopName: true,
+        language: true,
+      },
+    });
+
+    if (!owner) {
+      return res.status(401).json({
+        success: false,
+        error: "Foydalanuvchi hisobi topilmadi yoki o'chirilgan",
+      });
     }
+
+    req.owner = owner;
+    next();
+  } catch (err: any) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        error: 'Sessiya muddati tugagan (Token expired)',
+        code: 'TOKEN_EXPIRED',
+      });
+    }
+    return res.status(401).json({
+      success: false,
+      error: "Yaroqsiz avtorizatsiya tokeni",
+      code: 'INVALID_TOKEN',
+    });
   }
-
-  // Seamless fallback to active workshop owner account
-  const defaultOwner = await prisma.owner.findFirst({
-    select: {
-      id: true,
-      username: true,
-      fullName: true,
-      workshopName: true,
-      language: true,
-    },
-  });
-
-  if (defaultOwner) {
-    req.owner = defaultOwner;
-    return next();
-  }
-
-  return res.status(401).json({
-    success: false,
-    error: 'Avtorizatsiya talab qilinadi (Egasi topilmadi)',
-  });
 }

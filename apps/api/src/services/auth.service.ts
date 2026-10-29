@@ -168,24 +168,53 @@ export async function setupInitialOwner(data: {
 }
 
 export async function seedInitialOwnerIfMissing() {
-  const count = await countOwners();
-  if (count === 0 && process.env.INITIAL_OWNER_USERNAME && process.env.INITIAL_OWNER_PASSWORD) {
-    const username = process.env.INITIAL_OWNER_USERNAME;
-    const password = process.env.INITIAL_OWNER_PASSWORD;
-    const fullName = process.env.INITIAL_OWNER_FULLNAME || 'Alisher Qodirov';
-    const workshopName = process.env.INITIAL_WORKSHOP_NAME || 'AKFA Rom va Eshiklar Tsexi';
-    const language = process.env.INITIAL_DEFAULT_LANGUAGE || 'uz';
+  const defaultUsername = process.env.INITIAL_OWNER_USERNAME || 'admin';
+  const defaultPassword = process.env.INITIAL_OWNER_PASSWORD || '987654321';
+  const defaultFullName = process.env.INITIAL_OWNER_FULLNAME || 'Alisher Qodirov';
+  const defaultWorkshopName = process.env.INITIAL_WORKSHOP_NAME || 'AKFA Rom va Eshiklar Tsexi';
+  const defaultLanguage = process.env.INITIAL_DEFAULT_LANGUAGE || 'uz';
 
-    const passwordHash = await hashPassword(password);
-    await prisma.owner.create({
-      data: {
-        username,
-        passwordHash,
-        fullName,
-        workshopName,
-        language,
-      },
-    });
-    console.log(`[AKFA Auth] Initial owner '${username}' created securely.`);
+  const adminOwner = await prisma.owner.findUnique({
+    where: { username: defaultUsername },
+  });
+
+  if (!adminOwner) {
+    const existingOwner = await prisma.owner.findFirst();
+    const passwordHash = await hashPassword(defaultPassword);
+
+    if (existingOwner) {
+      await prisma.owner.update({
+        where: { id: existingOwner.id },
+        data: {
+          username: defaultUsername,
+          passwordHash,
+          fullName: existingOwner.fullName || defaultFullName,
+          workshopName: existingOwner.workshopName || defaultWorkshopName,
+        },
+      });
+      console.log(`[AKFA Auth] Updated existing owner to '${defaultUsername}' with canonical credentials.`);
+    } else {
+      await prisma.owner.create({
+        data: {
+          username: defaultUsername,
+          passwordHash,
+          fullName: defaultFullName,
+          workshopName: defaultWorkshopName,
+          language: defaultLanguage,
+        },
+      });
+      console.log(`[AKFA Auth] Initial owner '${defaultUsername}' created successfully.`);
+    }
+  } else {
+    // If admin exists, ensure password matches defaultPassword ('987654321')
+    const matchesDefault = await comparePassword(defaultPassword, adminOwner.passwordHash);
+    if (!matchesDefault) {
+      const passwordHash = await hashPassword(defaultPassword);
+      await prisma.owner.update({
+        where: { id: adminOwner.id },
+        data: { passwordHash },
+      });
+      console.log(`[AKFA Auth] Ensured '${defaultUsername}' password matches canonical credentials.`);
+    }
   }
 }
