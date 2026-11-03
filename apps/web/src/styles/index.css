@@ -5,12 +5,12 @@
 @layer base {
   html {
     scroll-behavior: auto;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   body {
     @apply text-workshop-text font-sans antialiased min-h-screen selection:bg-akfa-200 selection:text-akfa-900;
-    overflow-x: hidden;
+    overflow-x: clip;
     -webkit-tap-highlight-color: transparent;
   }
 

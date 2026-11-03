@@ -13,8 +13,7 @@ export const Header: React.FC = () => {
 
   return (
     <header
-      style={{ position: 'sticky', top: 0 }}
-      className="sticky top-0 z-40 bg-gradient-to-b from-white/85 via-white/65 to-white/35 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-900/40 backdrop-blur-md border-none shadow-none transition-colors"
+      className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-b from-white/90 via-white/70 to-white/35 dark:from-slate-900/95 dark:via-slate-900/75 dark:to-slate-900/40 backdrop-blur-md border-none shadow-none transition-colors"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between min-h-[76px] sm:min-h-[84px] py-3 sm:py-3.5">
