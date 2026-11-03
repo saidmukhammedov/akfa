@@ -12,9 +12,12 @@ export const Header: React.FC = () => {
   const { owner, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-b from-white/95 via-white/80 to-transparent dark:from-slate-900/98 dark:via-slate-900/80 dark:to-transparent backdrop-blur-2xl border-none shadow-none transform-gpu transition-all">
+    <header
+      style={{ position: 'sticky', top: 0 }}
+      className="sticky top-0 z-40 bg-gradient-to-b from-white/85 via-white/65 to-white/35 dark:from-slate-900/90 dark:via-slate-900/70 dark:to-slate-900/40 backdrop-blur-md border-none shadow-none transition-colors"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between min-h-[82px] sm:min-h-[92px] py-3.5 sm:py-4.5">
+        <div className="flex items-center justify-between min-h-[76px] sm:min-h-[84px] py-3 sm:py-3.5">
           {/* Logo & Workshop Name */}
           <div className="flex items-center gap-3.5">
             {/* Enhanced Modern AKFA Architectural Emblem */}

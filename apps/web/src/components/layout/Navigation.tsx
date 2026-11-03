@@ -46,18 +46,20 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
         </div>
       </nav>
 
-      {/* Seamless Soft Blur Overlay below and around the mobile navigation dock */}
+      {/* Pure Optical Blur Overlay below and around the mobile navigation dock (zero milky/faded tint) */}
       <div
         aria-hidden="true"
-        className="fixed bottom-0 left-0 right-0 h-28 pointer-events-none z-40 sm:hidden backdrop-blur-xl bg-gradient-to-b from-transparent via-white/20 to-white/60 dark:via-slate-900/25 dark:to-slate-900/70"
+        className="fixed bottom-0 left-0 right-0 h-32 pointer-events-none z-40 sm:hidden backdrop-blur-xl"
         style={{
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.85) 65%, black 100%)',
-          maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.85) 65%, black 100%)',
+          WebkitBackdropFilter: 'blur(20px)',
+          backdropFilter: 'blur(20px)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 25%, rgba(0,0,0,0.85) 60%, black 100%)',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 25%, rgba(0,0,0,0.85) 60%, black 100%)',
         }}
       />
 
-      {/* Mobile Floating Navigation Dock: higher elevation (bottom-9), narrower width (max-w-[305px]), soft rounded corners */}
-      <nav className="sm:hidden fixed bottom-9 left-1/2 -translate-x-1/2 w-[82%] max-w-[305px] z-50 bg-white/85 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/75 dark:border-slate-800/75 rounded-2xl shadow-[0_12px_32px_-4px_rgba(15,23,42,0.18)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.65)] p-1.5 transform-gpu">
+      {/* Mobile Floating Navigation Dock: calibrated width (max-w-[325px]), sleek height, soft rounded corners */}
+      <nav className="sm:hidden fixed bottom-9 left-1/2 -translate-x-1/2 w-[87%] max-w-[325px] z-50 bg-white/85 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/75 dark:border-slate-800/75 rounded-2xl shadow-[0_12px_32px_-4px_rgba(15,23,42,0.18)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.65)] p-1 transform-gpu">
         <div className="grid grid-cols-5 gap-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -66,7 +68,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all duration-200 active:scale-95 cursor-pointer ${
+                className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl transition-all duration-200 active:scale-95 cursor-pointer ${
                   isActive
                     ? 'bg-gradient-to-b from-akfa-600 to-indigo-600 dark:from-blue-600 dark:to-indigo-600 text-white shadow-[0_4px_14px_rgba(79,70,229,0.28)] border border-white/25 dark:border-white/20 font-bold'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'
