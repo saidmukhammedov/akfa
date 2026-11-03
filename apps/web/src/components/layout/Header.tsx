@@ -12,14 +12,25 @@ export const Header: React.FC = () => {
   const { owner, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-b from-white/90 via-white/70 to-white/20 dark:from-slate-900/95 dark:via-slate-900/80 dark:to-slate-900/20 backdrop-blur-xl border-b-0 shadow-none transform-gpu transition-all">
+    <header className="sticky top-0 z-40 bg-gradient-to-b from-white/95 via-white/80 to-transparent dark:from-slate-900/98 dark:via-slate-900/80 dark:to-transparent backdrop-blur-2xl border-none shadow-none transform-gpu transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-18 py-2">
+        <div className="flex items-center justify-between min-h-[82px] sm:min-h-[92px] py-3.5 sm:py-4.5">
           {/* Logo & Workshop Name */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-akfa-500 via-akfa-600 to-indigo-700 flex items-center justify-center text-white shadow-clay-btn-primary border border-akfa-400/50 select-none flex-shrink-0">
-              <span className="font-black tracking-widest text-[11px] sm:text-xs drop-shadow-md">AKFA</span>
+          <div className="flex items-center gap-3.5">
+            {/* Enhanced Modern AKFA Architectural Emblem */}
+            <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-akfa-600 to-indigo-700 p-0.5 shadow-[0_8px_20px_-4px_rgba(37,99,235,0.45)] border border-white/40 dark:border-blue-400/30 flex items-center justify-center select-none flex-shrink-0 group">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-white/25 via-transparent to-transparent pointer-events-none" />
+              <div className="flex flex-col items-center justify-center">
+                <svg className="w-5 h-5 text-white drop-shadow-sm mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="3" className="stroke-white" />
+                  <path d="M12 3v18" className="stroke-white/90" />
+                  <path d="M3 12h18" className="stroke-white/90" />
+                  <circle cx="12" cy="12" r="1.5" className="fill-sky-300 stroke-none" />
+                </svg>
+                <span className="font-black text-[9px] sm:text-[9.5px] tracking-[0.18em] text-white/95 leading-none pl-0.5">AKFA</span>
+              </div>
             </div>
+
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-lg tracking-tight leading-tight">
@@ -32,7 +43,7 @@ export const Header: React.FC = () => {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden md:block">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium hidden md:block mt-0.5">
                 {t.app.subtitle}
               </p>
             </div>

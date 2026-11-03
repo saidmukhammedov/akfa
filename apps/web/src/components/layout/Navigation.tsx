@@ -46,9 +46,19 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
         </div>
       </nav>
 
-      {/* Mobile Floating Navigation Dock: higher elevation, narrower width, taller height, soft rounded corners */}
-      <nav className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] z-50 bg-white/85 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/70 dark:border-slate-800/70 rounded-2xl shadow-[0_12px_32px_-4px_rgba(15,23,42,0.15)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.6)] p-1.5 transform-gpu">
-        <div className="grid grid-cols-5 gap-1">
+      {/* Seamless Soft Blur Overlay below and around the mobile navigation dock */}
+      <div
+        aria-hidden="true"
+        className="fixed bottom-0 left-0 right-0 h-28 pointer-events-none z-40 sm:hidden backdrop-blur-xl bg-gradient-to-b from-transparent via-white/20 to-white/60 dark:via-slate-900/25 dark:to-slate-900/70"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.85) 65%, black 100%)',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.85) 65%, black 100%)',
+        }}
+      />
+
+      {/* Mobile Floating Navigation Dock: higher elevation (bottom-9), narrower width (max-w-[305px]), soft rounded corners */}
+      <nav className="sm:hidden fixed bottom-9 left-1/2 -translate-x-1/2 w-[82%] max-w-[305px] z-50 bg-white/85 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/75 dark:border-slate-800/75 rounded-2xl shadow-[0_12px_32px_-4px_rgba(15,23,42,0.18)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.65)] p-1.5 transform-gpu">
+        <div className="grid grid-cols-5 gap-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -62,8 +72,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'
                 }`}
               >
-                <Icon className={`w-5 h-5 mb-1 ${isActive ? 'stroke-[2.2] text-white drop-shadow-sm' : 'stroke-[1.8] text-slate-500 dark:text-slate-400'}`} />
-                <span className="text-[10px] leading-tight tracking-tight truncate max-w-full">{item.label}</span>
+                <Icon className={`w-4.5 h-4.5 mb-1 ${isActive ? 'stroke-[2.2] text-white drop-shadow-sm' : 'stroke-[1.8] text-slate-500 dark:text-slate-400'}`} />
+                <span className="text-[9.5px] leading-tight tracking-tight truncate max-w-full">{item.label}</span>
               </button>
             );
           })}

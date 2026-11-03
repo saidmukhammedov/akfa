@@ -77,7 +77,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               localStorage.setItem('akfa_owner', JSON.stringify(profileRes.data));
             } catch {}
             if (profileRes.data.language) {
-              setLang(profileRes.data.language as 'uz' | 'ru');
+              // Respect client's explicit local preference; only use backend default if none is set
+              const savedLocalLang = localStorage.getItem('akfa_lang');
+              if (!savedLocalLang) {
+                setLang(profileRes.data.language as 'uz' | 'ru');
+              }
             }
           }
         })
@@ -134,7 +138,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // is active immediately when the dashboard mounts and fires background requests.
         lastLoginTimeRef.current = Date.now();
         if (res.data.user.language) {
-          setLang(res.data.user.language as 'uz' | 'ru');
+          const savedLocalLang = localStorage.getItem('akfa_lang');
+          if (!savedLocalLang) {
+            setLang(res.data.user.language as 'uz' | 'ru');
+          }
         }
       }
     } catch (err: any) {
@@ -186,15 +193,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     newPassword?: string;
   }) => {
     setAuthError(null);
+    if (data.language) {
+      setLang(data.language);
+      if (owner) {
+        const optimistic = { ...owner, language: data.language };
+        setOwner(optimistic);
+        try {
+          localStorage.setItem('akfa_owner', JSON.stringify(optimistic));
+        } catch {}
+      }
+    }
     try {
       const res = await api.auth.updateProfile(data);
       setOwner(res.data);
       try {
         localStorage.setItem('akfa_owner', JSON.stringify(res.data));
       } catch {}
-      if (data.language) {
-        setLang(data.language);
-      }
     } catch (err: any) {
       const msg = err instanceof ApiError ? err.message : 'Profilni yangilashda xatolik';
       setAuthError(msg);

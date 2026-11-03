@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Language, TranslationType, getTranslation, formatCurrency as sharedFormatCurrency, formatDate as sharedFormatDate } from '@akfa/shared';
 
 interface LanguageContextType {
@@ -13,15 +13,24 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [lang, setLangState] = useState<Language>(() => {
-    const saved = localStorage.getItem('akfa_lang');
-    return (saved === 'ru' || saved === 'uz') ? saved : 'uz';
+    try {
+      const saved = localStorage.getItem('akfa_lang');
+      return (saved === 'ru' || saved === 'uz') ? (saved as Language) : 'uz';
+    } catch {
+      return 'uz';
+    }
   });
 
-  const setLang = (newLang: Language) => {
-    setLangState(newLang);
-    localStorage.setItem('akfa_lang', newLang);
-    document.documentElement.lang = newLang;
-  };
+  const setLang = useCallback((newLang: Language) => {
+    setLangState((prev) => {
+      if (prev === newLang) return prev;
+      try {
+        localStorage.setItem('akfa_lang', newLang);
+      } catch {}
+      document.documentElement.lang = newLang;
+      return newLang;
+    });
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -29,9 +38,9 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const t = getTranslation(lang);
 
-  const formatCurrency = (amount: number) => sharedFormatCurrency(amount, lang);
-  const formatDate = (date: string | Date, style: 'short' | 'medium' | 'full' = 'medium') =>
-    sharedFormatDate(date, lang, style);
+  const formatCurrency = useCallback((amount: number) => sharedFormatCurrency(amount, lang), [lang]);
+  const formatDate = useCallback((date: string | Date, style: 'short' | 'medium' | 'full' = 'medium') =>
+    sharedFormatDate(date, lang, style), [lang]);
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t, formatCurrency, formatDate }}>
