@@ -20,6 +20,13 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Background warm-up ping to wake up cloud server instances (e.g. Render spin-up) immediately on page load
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    fetch(`${API_BASE_URL}/auth/status`, { method: 'GET' }).catch(() => {});
+  }, 100);
+}
+
 export class ApiError extends Error {
   statusCode: number;
   code?: string;
@@ -83,7 +90,9 @@ async function request<T>(
   }
 
   const controller = new AbortController();
-  const timeoutMs = options.signal ? 0 : 5000;
+  // 30s for heavy audio processing, 15s for normal requests (accommodates cloud cold starts & mobile networks)
+  const defaultTimeout = endpoint.includes('/voice/process-audio') ? 30000 : 15000;
+  const timeoutMs = options.signal ? 0 : defaultTimeout;
   const timeoutId = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
 
   let response: Response;
@@ -95,7 +104,15 @@ async function request<T>(
     });
   } catch (err: any) {
     if (err.name === 'AbortError') {
-      throw new ApiError("Server bilan aloqa vaqti tugadi (5s).", 408);
+      // Automatic 1-time retry for idempotent GET queries during server warm-up
+      if ((!options.method || options.method === 'GET') && !isRetry) {
+        return request<T>(endpoint, options, true);
+      }
+      throw new ApiError("Server bilan aloqa vaqti tugadi. Qayta urinib ko'ring.", 408);
+    }
+    // Also retry on network drops or cold-start socket resets for GET queries
+    if (err.name === 'TypeError' && !isRetry && (!options.method || options.method === 'GET')) {
+      return request<T>(endpoint, options, true);
     }
     throw err;
   } finally {

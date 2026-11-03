@@ -190,7 +190,18 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
       await fetchAttendanceForDate(selectedDate);
     } catch (err: any) {
       const msg = err instanceof ApiError ? err.message : "Ma'lumotlarni yuklashda xatolik yuz berdi";
-      setError(msg);
+      // Smart Stale-While-Revalidate:
+      // If we already have workers/data cached and rendered on screen, do not disrupt the user with a banner.
+      // Instead, silently retry in 5 seconds to sync fresh data once the server completes waking up.
+      const hasCachedData = workers.length > 0 || getCache<Worker[]>(CACHE_KEYS.WORKERS, []).length > 0;
+      if (!hasCachedData) {
+        setError(msg);
+      } else {
+        console.warn('[Sync] Background sync delayed (waking server up):', msg);
+        setTimeout(() => {
+          refreshData();
+        }, 5000);
+      }
     } finally {
       setIsLoading(false);
     }
