@@ -374,10 +374,10 @@ export const api = {
   },
 
   voice: {
-    processAudio: async (audioBase64: string, mimeType: string = 'audio/webm') =>
+    processAudio: async (audioBase64?: string, mimeType: string = 'audio/webm', clientTranscript?: string) =>
       request<{ success: boolean; data: VoiceProcessResult }>('/voice/process-audio', {
         method: 'POST',
-        body: JSON.stringify({ audioBase64, mimeType }),
+        body: JSON.stringify({ audioBase64, mimeType, clientTranscript }),
       }),
 
     parseText: async (text: string, date?: string) =>

@@ -40,7 +40,10 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
   const [isConfirming, setIsConfirming] = useState(false);
   const [manualText, setManualText] = useState('');
   const [activeTabMode, setActiveTabMode] = useState<'VOICE' | 'TEXT'>('VOICE');
+  const [liveTranscript, setLiveTranscript] = useState('');
 
+  const liveTranscriptRef = useRef('');
+  const speechRecognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -56,6 +59,8 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
       setProcessResult(null);
       setManualText('');
       setActiveTabMode('VOICE');
+      setLiveTranscript('');
+      liveTranscriptRef.current = '';
     } else {
       cleanupRecording();
     }
@@ -76,13 +81,60 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.abort();
+      } catch {}
+      speechRecognitionRef.current = null;
+    }
     setIsRecording(false);
   };
 
   // Start recording
   const startRecording = async () => {
     setErrorMessage(null);
+    setLiveTranscript('');
+    liveTranscriptRef.current = '';
     audioChunksRef.current = [];
+
+    // 1. Initialize native Web Speech API for real-time Uzbek transcription if available in browser
+    const SpeechRecClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecClass) {
+      try {
+        const recognition = new SpeechRecClass();
+        recognition.lang = 'uz-UZ';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        let accumulated = '';
+        recognition.onresult = (event: any) => {
+          let interim = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcriptPart = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              accumulated += (accumulated ? ' ' : '') + transcriptPart;
+            } else {
+              interim += transcriptPart;
+            }
+          }
+          const fullText = (accumulated + (interim ? ' ' + interim : '')).trim();
+          if (fullText) {
+            setLiveTranscript(fullText);
+            liveTranscriptRef.current = fullText;
+          }
+        };
+
+        recognition.onerror = (e: any) => {
+          console.warn('[SpeechRecognition] error:', e.error);
+        };
+
+        recognition.start();
+        speechRecognitionRef.current = recognition;
+      } catch (recErr) {
+        console.warn('SpeechRecognition start error:', recErr);
+      }
+    }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setErrorMessage("Ushbu brauzerda ovoz yozish (MediaRecorder) qo'llab-quvvatlanmaydi.");
@@ -156,6 +208,11 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    if (speechRecognitionRef.current) {
+      try {
+        speechRecognitionRef.current.stop();
+      } catch {}
+    }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
@@ -171,14 +228,34 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
   const handleAudioUpload = async (audioBlob: Blob) => {
     setStep('PROCESSING');
     try {
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      const audioBase64 = btoa(binary);
+      const capturedTranscript = liveTranscriptRef.current.trim();
 
+      // Convert audio blob to base64
+      let audioBase64 = '';
+      try {
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        audioBase64 = btoa(binary);
+      } catch (err) {
+        console.warn('Audio base64 conversion warning:', err);
+      }
+
+      // If Uzbek speech was recognized in real-time by browser speech engine:
+      if (capturedTranscript) {
+        const res = await apiClient.voice.processAudio(
+          audioBase64 || undefined,
+          audioBlob.type || 'audio/webm',
+          capturedTranscript
+        );
+        handleProcessSuccess(res.data);
+        return;
+      }
+
+      // Fallback: send raw audio to server
       const res = await apiClient.voice.processAudio(audioBase64, audioBlob.type || 'audio/webm');
       handleProcessSuccess(res.data);
     } catch (err: any) {
@@ -321,10 +398,23 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
                   </h4>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
                     {isRecording
-                      ? `Yozilmoqda: ${formatTimer(recordingSeconds)} (to'xtatish uchun bosing)`
+                      ? `Yozilmoqda: ${formatTimer(recordingSeconds)} (to'xtatish uchun qizil tugmani bosing)`
                       : t.voice?.speakPrompt || "O'zbek tilida gapiring (masalan: 'Bugun Aziz 25 kvadrat ishladi')"}
                   </p>
                 </div>
+
+                {/* Real-time recognized speech preview */}
+                {liveTranscript && (
+                  <div className="w-full text-left p-3.5 rounded-2xl bg-blue-50/90 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-xs animate-in fade-in duration-200">
+                    <span className="font-bold text-akfa-700 dark:text-blue-300 flex items-center gap-1.5 mb-1">
+                      <Volume2 className="w-3.5 h-3.5 text-akfa-600 dark:text-blue-400 animate-pulse" />
+                      Eshitilayotgan gap:
+                    </span>
+                    <p className="font-bold text-slate-900 dark:text-white text-sm italic">
+                      "{liveTranscript}"
+                    </p>
+                  </div>
+                )}
 
                 {/* Example prompts pill */}
                 <div className="w-full text-left p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5">

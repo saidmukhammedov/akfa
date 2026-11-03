@@ -4,8 +4,27 @@ import { prisma } from '../services/prisma.js';
 import { db } from '../services/store.js';
 
 export async function processAudio(req: Request, res: Response) {
-  const { audioBase64, mimeType } = req.body;
+  const { audioBase64, mimeType, clientTranscript } = req.body;
   const ownerId = (req as any).owner?.id || (req as any).user?.id || 'owner-default-1';
+
+  // If client transcript is supplied (e.g. from browser SpeechRecognition engine), process it directly
+  if (typeof clientTranscript === 'string' && clientTranscript.trim()) {
+    try {
+      const result = await voiceOrchestratorService.processTextCommand(
+        clientTranscript.trim(),
+        ownerId
+      );
+      return res.json({
+        success: true,
+        data: result,
+      });
+    } catch (err: any) {
+      return res.status(500).json({
+        success: false,
+        error: err.message || "Ovozli buyruqni tahlil qilishda xatolik yuz berdi",
+      });
+    }
+  }
 
   if (!audioBase64 || typeof audioBase64 !== 'string') {
     return res.status(400).json({

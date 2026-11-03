@@ -1,3 +1,4 @@
+process.env.NODE_ENV = 'test';
 import assert from 'node:assert';
 import { createApp } from '../dist/app.js';
 import { prisma } from '../dist/services/prisma.js';

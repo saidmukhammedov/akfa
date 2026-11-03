@@ -11,8 +11,9 @@ export const voiceIntentEnum = z.enum([
 ]);
 
 export const processAudioInputSchema = z.object({
-  audioBase64: z.string().min(1, "Ovozli xabar fayli bo'sh bo'lishi mumkin emas"),
+  audioBase64: z.string().optional(),
   mimeType: z.string().default('audio/webm'),
+  clientTranscript: z.string().optional(),
 });
 
 export const parseTextInputSchema = z.object({
