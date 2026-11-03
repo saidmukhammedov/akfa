@@ -13,10 +13,14 @@ export const Header: React.FC = () => {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-b from-white/90 via-white/70 to-white/35 dark:from-slate-900/95 dark:via-slate-900/75 dark:to-slate-900/40 backdrop-blur-md border-none shadow-none transition-colors"
+      className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-b from-white/95 via-white/80 to-transparent dark:from-slate-900/98 dark:via-slate-900/80 dark:to-transparent backdrop-blur-md border-none shadow-none pointer-events-none"
+      style={{
+        WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)',
+        maskImage: 'linear-gradient(to bottom, black 0%, black 65%, transparent 100%)',
+      }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between min-h-[76px] sm:min-h-[84px] py-3 sm:py-3.5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-auto">
+        <div className="flex items-center justify-between min-h-[76px] sm:min-h-[84px] pt-3 pb-6 sm:pt-3.5 sm:pb-7">
           {/* Logo & Workshop Name */}
           <div className="flex items-center gap-3.5">
             {/* Enhanced Modern AKFA Architectural Emblem */}
