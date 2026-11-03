@@ -20,7 +20,7 @@ export const Header: React.FC = () => {
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-auto">
-        <div className="flex items-center justify-between min-h-[76px] sm:min-h-[84px] pt-3 pb-6 sm:pt-3.5 sm:pb-7">
+        <div className="flex items-center justify-between min-h-[84px] sm:min-h-[92px] pt-3.5 pb-7.5 sm:pt-4 sm:pb-8.5">
           {/* Logo & Workshop Name */}
           <div className="flex items-center gap-3.5">
             {/* Enhanced Modern AKFA Architectural Emblem */}

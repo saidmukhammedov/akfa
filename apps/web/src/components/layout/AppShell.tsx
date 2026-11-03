@@ -27,7 +27,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeTab, onTabCh
         <div className="absolute bottom-1/4 -right-20 w-[420px] h-[420px] rounded-full bg-purple-300/20 dark:bg-purple-600/15 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 flex flex-col flex-1 pt-[76px] sm:pt-[84px]">
+      <div className="relative z-10 flex flex-col flex-1 pt-[84px] sm:pt-[92px]">
         <Header />
         <Navigation activeTab={activeTab} onTabChange={onTabChange} />
 
