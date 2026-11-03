@@ -9,6 +9,11 @@ import {
   WorkerUpdateInput,
   WorkerFinanceSummary,
   WorkshopFinanceOverview,
+  VolumeRecord,
+  VolumeCreateInput,
+  VolumeUpdateInput,
+  VolumeOverview,
+  WorkerVolumeSummary,
   getTodayDateString,
 } from '@akfa/shared';
 import { api, ApiError } from '../api/client';
@@ -31,6 +36,9 @@ interface AppStateContextType {
   attendances: AttendanceRecord[];
   dateAttendanceRecords: DateAttendanceRecord[];
   payments: PaymentRecord[];
+  volumes: VolumeRecord[];
+  volumeOverview: VolumeOverview | null;
+  volumeWorkerSummaries: WorkerVolumeSummary[];
   selectedDate: string;
   setSelectedDate: (date: string) => void;
   isLoading: boolean;
@@ -41,6 +49,9 @@ interface AppStateContextType {
   markAttendance: (workerId: string, status: AttendanceStatus, notes?: string, isHalfDay?: boolean) => Promise<void>;
   bulkMarkAttendance: (status: AttendanceStatus) => Promise<void>;
   recordPayment: (workerId: string, amount: number, paymentMethod: PaymentMethod, notes?: string) => Promise<void>;
+  addVolumeRecord: (input: VolumeCreateInput) => Promise<void>;
+  updateVolumeRecord: (id: string, input: VolumeUpdateInput) => Promise<void>;
+  deleteVolumeRecord: (id: string) => Promise<void>;
   addWorker: (input: WorkerCreateInput) => Promise<void>;
   updateWorker: (id: string, input: WorkerUpdateInput) => Promise<void>;
   archiveWorker: (id: string) => Promise<void>;
@@ -61,6 +72,7 @@ const CACHE_KEYS = {
   PAYMENTS: 'akfa_cache_payments',
   DATE_RECORDS: 'akfa_cache_date_records',
   ATTENDANCES: 'akfa_cache_attendances',
+  VOLUMES: 'akfa_cache_volumes',
 };
 
 const getCache = <T,>(key: string, fallback: T): T => {
@@ -87,6 +99,9 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [dateAttendanceRecords, setDateAttendanceRecords] = useState<DateAttendanceRecord[]>(() => getCache(CACHE_KEYS.DATE_RECORDS, []));
   const [attendances, setAttendances] = useState<AttendanceRecord[]>(() => getCache(CACHE_KEYS.ATTENDANCES, []));
   const [payments, setPayments] = useState<PaymentRecord[]>(() => getCache(CACHE_KEYS.PAYMENTS, []));
+  const [volumes, setVolumes] = useState<VolumeRecord[]>(() => getCache(CACHE_KEYS.VOLUMES, []));
+  const [volumeOverview, setVolumeOverview] = useState<VolumeOverview | null>(null);
+  const [volumeWorkerSummaries, setVolumeWorkerSummaries] = useState<WorkerVolumeSummary[]>([]);
   const [financeSummaries, setFinanceSummaries] = useState<WorkerFinanceSummary[]>(() => getCache(CACHE_KEYS.SUMMARIES, []));
   const [financeOverview, setFinanceOverview] = useState<WorkshopFinanceOverview>(() =>
     getCache(CACHE_KEYS.OVERVIEW, {
@@ -138,11 +153,13 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
 
     try {
-      const [workersRes, overviewRes, summariesRes, paymentsRes] = await Promise.all([
+      const [workersRes, overviewRes, summariesRes, paymentsRes, volumesRes, volOverviewRes] = await Promise.all([
         api.workers.list(),
         api.finance.getOverview(),
         api.finance.getSummaries(),
         api.finance.getPayments(30),
+        api.volumes.list(),
+        api.volumes.getOverview(selectedDate),
       ]);
 
       if (workersRes.success) {
@@ -160,6 +177,14 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
       if (paymentsRes.success) {
         setPayments(paymentsRes.data);
         setCache(CACHE_KEYS.PAYMENTS, paymentsRes.data);
+      }
+      if (volumesRes.success) {
+        setVolumes(volumesRes.data);
+        setCache(CACHE_KEYS.VOLUMES, volumesRes.data);
+      }
+      if (volOverviewRes.success) {
+        setVolumeOverview(volOverviewRes.data.overview);
+        setVolumeWorkerSummaries(volOverviewRes.data.workerSummaries);
       }
 
       await fetchAttendanceForDate(selectedDate);
@@ -389,6 +414,144 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  const addVolumeRecord = async (input: VolumeCreateInput) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    const prevVolumes = volumes;
+    const worker = workers.find((w) => w.id === input.workerId);
+    const rate = input.rateSnapshot !== undefined ? input.rateSnapshot : (worker?.ratePerM2 || 0);
+    const totalAmount = Math.round(input.squareMeters * rate);
+
+    const tempRecord: VolumeRecord = {
+      id: `vol-temp-${Date.now()}`,
+      workerId: input.workerId,
+      workerName: worker?.name,
+      workerRole: worker?.role,
+      date: input.date,
+      squareMeters: input.squareMeters,
+      rateSnapshot: rate,
+      totalAmount,
+      notes: input.notes || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Optimistically update immediately
+    setVolumes((prev) => [tempRecord, ...prev]);
+
+    try {
+      const res = await api.volumes.create(input);
+      if (res.success && res.data) {
+        setVolumes((prev) =>
+          prev.map((v) => (v.id === tempRecord.id ? res.data : v))
+        );
+        setCache(CACHE_KEYS.VOLUMES, [res.data, ...prevVolumes]);
+      }
+
+      // Sync finance overview, summaries, and volume overview in background
+      Promise.all([
+        api.finance.getOverview().then((r) => r.success && setFinanceOverview(r.data)),
+        api.finance.getSummaries().then((r) => r.success && setFinanceSummaries(r.data)),
+        api.volumes.getOverview(selectedDate).then((r) => {
+          if (r.success) {
+            setVolumeOverview(r.data.overview);
+            setVolumeWorkerSummaries(r.data.workerSummaries);
+          }
+        }),
+      ]).catch(() => {});
+    } catch (err: any) {
+      setVolumes(prevVolumes);
+      const msg = err instanceof ApiError ? err.message : "Hajmni saqlashda xatolik yuz berdi";
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const updateVolumeRecord = async (id: string, input: VolumeUpdateInput) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    const prevVolumes = volumes;
+
+    setVolumes((prev) =>
+      prev.map((v) => {
+        if (v.id !== id) return v;
+        const newM2 = input.squareMeters !== undefined ? input.squareMeters : v.squareMeters;
+        const newRate = input.rateSnapshot !== undefined ? input.rateSnapshot : v.rateSnapshot;
+        return {
+          ...v,
+          date: input.date !== undefined ? input.date : v.date,
+          squareMeters: newM2,
+          rateSnapshot: newRate,
+          totalAmount: Math.round(newM2 * newRate),
+          notes: input.notes !== undefined ? (input.notes || null) : v.notes,
+          updatedAt: new Date().toISOString(),
+        };
+      })
+    );
+
+    try {
+      const res = await api.volumes.update(id, input);
+      if (res.success && res.data) {
+        setVolumes((prev) => prev.map((v) => (v.id === id ? res.data : v)));
+      }
+
+      Promise.all([
+        api.finance.getOverview().then((r) => r.success && setFinanceOverview(r.data)),
+        api.finance.getSummaries().then((r) => r.success && setFinanceSummaries(r.data)),
+        api.volumes.getOverview(selectedDate).then((r) => {
+          if (r.success) {
+            setVolumeOverview(r.data.overview);
+            setVolumeWorkerSummaries(r.data.workerSummaries);
+          }
+        }),
+      ]).catch(() => {});
+    } catch (err: any) {
+      setVolumes(prevVolumes);
+      const msg = err instanceof ApiError ? err.message : "Hajmni yangilashda xatolik yuz berdi";
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const deleteVolumeRecord = async (id: string) => {
+    if (isMutating) return;
+    setIsMutating(true);
+    setError(null);
+
+    const prevVolumes = volumes;
+    setVolumes((prev) => prev.filter((v) => v.id !== id));
+
+    try {
+      await api.volumes.delete(id);
+
+      Promise.all([
+        api.finance.getOverview().then((r) => r.success && setFinanceOverview(r.data)),
+        api.finance.getSummaries().then((r) => r.success && setFinanceSummaries(r.data)),
+        api.volumes.getOverview(selectedDate).then((r) => {
+          if (r.success) {
+            setVolumeOverview(r.data.overview);
+            setVolumeWorkerSummaries(r.data.workerSummaries);
+          }
+        }),
+      ]).catch(() => {});
+    } catch (err: any) {
+      setVolumes(prevVolumes);
+      const msg = err instanceof ApiError ? err.message : "Hajmni o'chirishda xatolik yuz berdi";
+      setError(msg);
+      throw err;
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
   const addWorker = async (input: WorkerCreateInput) => {
     if (isMutating) return;
     setIsMutating(true);
@@ -501,6 +664,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         setAttendances([]);
         setDateAttendanceRecords([]);
         setPayments([]);
+        setVolumes([]);
         setFinanceSummaries([]);
         setFinanceOverview({
           totalAccruedSalaries: 0,
@@ -535,6 +699,9 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         attendances,
         dateAttendanceRecords,
         payments,
+        volumes,
+        volumeOverview,
+        volumeWorkerSummaries,
         selectedDate,
         setSelectedDate,
         isLoading,
@@ -545,6 +712,9 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         markAttendance,
         bulkMarkAttendance,
         recordPayment,
+        addVolumeRecord,
+        updateVolumeRecord,
+        deleteVolumeRecord,
         addWorker,
         updateWorker,
         archiveWorker,

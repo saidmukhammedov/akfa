@@ -16,6 +16,7 @@ import {
   CalendarCheck,
   CreditCard,
   ArrowRight,
+  Layers,
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -52,19 +53,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
             {owner?.workshopName || t.app.title} &bull; {formatDate(selectedDate, 'full')}
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:gap-3.5">
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:gap-3">
           <Button
             variant="primary"
             onClick={() => onNavigate('davomat')}
-            className="h-12 sm:h-12 px-5 text-xs sm:text-sm font-extrabold rounded-2xl flex items-center justify-center gap-2.5 w-full sm:w-auto"
+            className="h-12 sm:h-12 px-3 sm:px-5 text-xs sm:text-sm font-extrabold rounded-2xl flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <CalendarCheck className="w-4 h-4 shrink-0 text-white stroke-[2.4]" />
             <span className="truncate">{t.dashboard.quickDavomatBtn}</span>
           </Button>
           <Button
             variant="secondary"
+            onClick={() => onNavigate('obyom')}
+            className="h-12 sm:h-12 px-3 sm:px-5 text-xs sm:text-sm font-extrabold rounded-2xl flex items-center justify-center gap-2 w-full sm:w-auto text-indigo-700 dark:text-indigo-300"
+          >
+            <Layers className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400 stroke-[2.4]" />
+            <span className="truncate">{t.nav.obyom || 'Obyom'}</span>
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => onNavigate('moliya')}
-            className="h-12 sm:h-12 px-5 text-xs sm:text-sm font-extrabold rounded-2xl flex items-center justify-center gap-2.5 w-full sm:w-auto"
+            className="h-12 sm:h-12 px-3 sm:px-5 text-xs sm:text-sm font-extrabold rounded-2xl flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <CreditCard className="w-4 h-4 shrink-0 text-slate-700 dark:text-slate-200 stroke-[2.4]" />
             <span className="truncate">{t.dashboard.quickPaymentBtn}</span>
@@ -126,7 +135,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate }) => {
             {formatCurrency(financeOverview.totalAccruedSalaries)}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-3">
-            Davomat va kunlik stavkalar asosida
+            Kunlik: {formatCurrency(financeOverview.totalBaseSalaries ?? 0)} &bull; Ishbay: {formatCurrency(financeOverview.totalVolumeEarnings ?? 0)}
           </p>
         </div>
 

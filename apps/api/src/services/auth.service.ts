@@ -8,7 +8,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 const REFRESH_DAYS = Number(process.env.REFRESH_TOKEN_EXPIRES_DAYS) || 7;
 
 export async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(12);
+  const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(password, salt);
 }
 

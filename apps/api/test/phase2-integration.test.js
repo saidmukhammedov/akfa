@@ -8,6 +8,7 @@ const TEST_PORT = 4002;
 const BASE_URL = `http://localhost:${TEST_PORT}/api`;
 
 async function cleanDatabase() {
+  await prisma.volumeRecord.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.attendance.deleteMany();
   await prisma.worker.deleteMany();

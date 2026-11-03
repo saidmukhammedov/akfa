@@ -8,6 +8,7 @@ export interface Worker {
   phone?: string | null;
   role: WorkerRole;
   dailyRate: number; // in UZS (so'm)
+  ratePerM2: number; // in UZS (so'm) per m²
   status: WorkerStatus;
   archivedAt?: string | null;
   createdAt: string;
@@ -19,6 +20,7 @@ export interface WorkerCreateInput {
   phone?: string | null;
   role: WorkerRole;
   dailyRate: number;
+  ratePerM2?: number;
 }
 
 export interface WorkerUpdateInput {
@@ -26,5 +28,6 @@ export interface WorkerUpdateInput {
   phone?: string | null;
   role?: WorkerRole;
   dailyRate?: number;
+  ratePerM2?: number;
   status?: WorkerStatus;
 }

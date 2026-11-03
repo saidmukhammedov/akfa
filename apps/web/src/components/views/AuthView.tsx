@@ -13,7 +13,7 @@ export const AuthView: React.FC = () => {
   const { isInitialized, login, setup, authError, clearError } = useAuth();
 
   const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('987654321');
   const [fullName, setFullName] = useState('Alisher Qodirov');
   const [workshopName, setWorkshopName] = useState('AKFA Rom va Eshiklar Tsexi');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,16 +114,17 @@ export const AuthView: React.FC = () => {
               placeholder="admin"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
               required
-              autoFocus
             />
 
             <Input
               type="password"
               label={t.auth.passwordLabel}
-              placeholder="••••••••"
+              placeholder="987654321"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
             />
 

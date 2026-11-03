@@ -7,6 +7,7 @@ import { AppShell } from './components/layout/AppShell';
 import { TabId } from './components/layout/Navigation';
 import { DashboardView } from './components/views/DashboardView';
 import { DavomatView } from './components/views/DavomatView';
+import { ObyomView } from './components/views/ObyomView';
 import { MoliyaView } from './components/views/MoliyaView';
 import { SozlamalarView } from './components/views/SozlamalarView';
 import { AuthView } from './components/views/AuthView';
@@ -23,6 +24,7 @@ export const AppContent: React.FC = () => {
     <AppShell activeTab={activeTab} onTabChange={setActiveTab}>
       {activeTab === 'dashboard' && <DashboardView onNavigate={setActiveTab} />}
       {activeTab === 'davomat' && <DavomatView />}
+      {activeTab === 'obyom' && <ObyomView />}
       {activeTab === 'moliya' && <MoliyaView />}
       {activeTab === 'sozlamalar' && <SozlamalarView />}
     </AppShell>

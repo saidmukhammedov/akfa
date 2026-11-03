@@ -47,6 +47,7 @@ export const SozlamalarView: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<WorkerRole>('usta');
   const [dailyRate, setDailyRate] = useState('');
+  const [ratePerM2, setRatePerM2] = useState('');
   const [workerFormError, setWorkerFormError] = useState('');
   const [isSubmittingWorker, setIsSubmittingWorker] = useState(false);
 
@@ -63,6 +64,7 @@ export const SozlamalarView: React.FC = () => {
     setPhone('');
     setRole('usta');
     setDailyRate('200000');
+    setRatePerM2('15000');
     setWorkerFormError('');
     clearError();
     setIsWorkerModalOpen(true);
@@ -74,6 +76,7 @@ export const SozlamalarView: React.FC = () => {
     setPhone(w.phone || '');
     setRole(w.role);
     setDailyRate(String(w.dailyRate));
+    setRatePerM2(String(w.ratePerM2 ?? 0));
     setWorkerFormError('');
     clearError();
     setIsWorkerModalOpen(true);
@@ -92,6 +95,13 @@ export const SozlamalarView: React.FC = () => {
       return;
     }
 
+    const cleanRatePerM2 = String(ratePerM2).replace(/\s/g, '');
+    const ratePerM2Num = cleanRatePerM2 ? Number(cleanRatePerM2) : 0;
+    if (isNaN(ratePerM2Num) || ratePerM2Num < 0) {
+      setWorkerFormError("1 m² stavkasi 0 yoki undan katta bo'lishi kerak");
+      return;
+    }
+
     setIsSubmittingWorker(true);
     setWorkerFormError('');
 
@@ -102,6 +112,7 @@ export const SozlamalarView: React.FC = () => {
           phone: phone.trim() || null,
           role,
           dailyRate: rateNum,
+          ratePerM2: ratePerM2Num,
         });
       } else {
         await addWorker({
@@ -109,6 +120,7 @@ export const SozlamalarView: React.FC = () => {
           phone: phone.trim() || null,
           role,
           dailyRate: rateNum,
+          ratePerM2: ratePerM2Num,
         });
       }
       setIsWorkerModalOpen(false);
@@ -254,8 +266,12 @@ export const SozlamalarView: React.FC = () => {
                           <span className="font-extrabold text-slate-800 dark:text-slate-200 whitespace-nowrap">
                             {formatCurrency(worker.dailyRate)}
                           </span>
+                          <span className="whitespace-nowrap">/ {t.davomat.ratePerDay}</span>
                           <span>&bull;</span>
-                          <span className="whitespace-nowrap">{t.davomat.ratePerDay}</span>
+                          <span className="font-extrabold text-indigo-700 dark:text-indigo-400 whitespace-nowrap">
+                            {formatCurrency(worker.ratePerM2 ?? 0)}
+                          </span>
+                          <span className="whitespace-nowrap">/ m²</span>
                           {worker.phone && (
                             <>
                               <span>&bull;</span>
@@ -552,6 +568,29 @@ export const SozlamalarView: React.FC = () => {
                   className="clay-interactive px-3.5 py-1.5 text-xs bg-gradient-to-b from-white to-slate-100 text-slate-800 rounded-full font-black border border-white shadow-clay-pill transition-all cursor-pointer"
                 >
                   {formatCurrency(rate)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Input
+              type="number"
+              label={t.sozlamalar.workerRatePerM2Label || "1 m² uchun stavka (so'mda)"}
+              placeholder="15000"
+              value={ratePerM2}
+              onChange={(e) => setRatePerM2(e.target.value)}
+              required
+            />
+            <div className="flex flex-wrap gap-2 mt-3">
+              {[10000, 15000, 20000, 25000, 30000].map((rate) => (
+                <button
+                  key={rate}
+                  type="button"
+                  onClick={() => setRatePerM2(String(rate))}
+                  className="clay-interactive px-3.5 py-1.5 text-xs bg-gradient-to-b from-white to-slate-100 text-slate-800 rounded-full font-black border border-white shadow-clay-pill transition-all cursor-pointer"
+                >
+                  {formatCurrency(rate)} / m²
                 </button>
               ))}
             </div>

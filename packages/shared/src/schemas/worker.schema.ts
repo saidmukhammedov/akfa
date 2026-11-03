@@ -26,6 +26,7 @@ export const workerCreateSchema = z.object({
   phone: phoneValidator,
   role: workerRoleEnum,
   dailyRate: z.coerce.number().min(0, { message: "Kunlik stavka 0 dan kam bo'lishi mumkin emas" }),
+  ratePerM2: z.coerce.number().min(0, { message: "1 m² narxi 0 dan kam bo'lishi mumkin emas" }).default(0).optional(),
 });
 
 export const workerUpdateSchema = z.object({
@@ -33,6 +34,7 @@ export const workerUpdateSchema = z.object({
   phone: phoneValidator,
   role: workerRoleEnum.optional(),
   dailyRate: z.coerce.number().min(0, { message: "Kunlik stavka 0 dan kam bo'lishi mumkin emas" }).optional(),
+  ratePerM2: z.coerce.number().min(0, { message: "1 m² narxi 0 dan kam bo'lishi mumkin emas" }).optional(),
   status: workerStatusEnum.optional(),
 });
 

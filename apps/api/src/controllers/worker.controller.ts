@@ -18,6 +18,7 @@ export async function listWorkers(req: Request, res: Response) {
   const serialized = workers.map((w) => ({
     ...w,
     dailyRate: Number(w.dailyRate),
+    ratePerM2: Number(w.ratePerM2 || 0),
     createdAt: w.createdAt.toISOString(),
     updatedAt: w.updatedAt.toISOString(),
     archivedAt: w.archivedAt ? w.archivedAt.toISOString() : null,
@@ -47,6 +48,7 @@ export async function getWorker(req: Request, res: Response) {
     data: {
       ...worker,
       dailyRate: Number(worker.dailyRate),
+      ratePerM2: Number(worker.ratePerM2 || 0),
       createdAt: worker.createdAt.toISOString(),
       updatedAt: worker.updatedAt.toISOString(),
       archivedAt: worker.archivedAt ? worker.archivedAt.toISOString() : null,
@@ -55,7 +57,7 @@ export async function getWorker(req: Request, res: Response) {
 }
 
 export async function createWorker(req: Request, res: Response) {
-  const { name, phone, role, dailyRate } = req.body;
+  const { name, phone, role, dailyRate, ratePerM2 } = req.body;
 
   const worker = await prisma.worker.create({
     data: {
@@ -63,6 +65,7 @@ export async function createWorker(req: Request, res: Response) {
       phone: phone?.trim() || null,
       role: role || 'usta',
       dailyRate: new Prisma.Decimal(dailyRate),
+      ratePerM2: new Prisma.Decimal(ratePerM2 || 0),
       status: 'ACTIVE',
     },
   });
@@ -72,6 +75,7 @@ export async function createWorker(req: Request, res: Response) {
     data: {
       ...worker,
       dailyRate: Number(worker.dailyRate),
+      ratePerM2: Number(worker.ratePerM2 || 0),
       createdAt: worker.createdAt.toISOString(),
       updatedAt: worker.updatedAt.toISOString(),
       archivedAt: null,
@@ -82,7 +86,7 @@ export async function createWorker(req: Request, res: Response) {
 
 export async function updateWorker(req: Request, res: Response) {
   const { id } = req.params;
-  const { name, phone, role, dailyRate, status } = req.body;
+  const { name, phone, role, dailyRate, ratePerM2, status } = req.body;
 
   const existing = await prisma.worker.findUnique({ where: { id } });
   if (!existing) {
@@ -97,6 +101,7 @@ export async function updateWorker(req: Request, res: Response) {
   if (phone !== undefined) updateData.phone = phone?.trim() || null;
   if (role !== undefined) updateData.role = role;
   if (dailyRate !== undefined) updateData.dailyRate = new Prisma.Decimal(dailyRate);
+  if (ratePerM2 !== undefined) updateData.ratePerM2 = new Prisma.Decimal(ratePerM2);
   if (status !== undefined) {
     updateData.status = status;
     if (status === 'ARCHIVED' && existing.status !== 'ARCHIVED') {
@@ -116,6 +121,7 @@ export async function updateWorker(req: Request, res: Response) {
     data: {
       ...updated,
       dailyRate: Number(updated.dailyRate),
+      ratePerM2: Number(updated.ratePerM2 || 0),
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
       archivedAt: updated.archivedAt ? updated.archivedAt.toISOString() : null,
@@ -200,6 +206,7 @@ export async function deleteWorker(req: Request, res: Response) {
   }
 
   await prisma.$transaction(async (tx) => {
+    await tx.volumeRecord.deleteMany({ where: { workerId: id } });
     await tx.attendance.deleteMany({ where: { workerId: id } });
     await tx.payment.deleteMany({ where: { workerId: id } });
     await tx.worker.delete({ where: { id } });
@@ -207,17 +214,19 @@ export async function deleteWorker(req: Request, res: Response) {
 
   return res.json({
     success: true,
-    message: "Ishchi va uning barcha davomat/to'lov yozuvlari o'chirildi",
+    message: "Ishchi va uning barcha davomat/to'lov/hajm yozuvlari o'chirildi",
   });
 }
 
 export async function purgeAllWorkersAndHistory(_req: Request, res: Response) {
   try {
     const result = await prisma.$transaction(async (tx) => {
+      const volCount = await tx.volumeRecord.deleteMany({});
       const attCount = await tx.attendance.deleteMany({});
       const payCount = await tx.payment.deleteMany({});
       const workerCount = await tx.worker.deleteMany({});
       return {
+        volumes: volCount.count,
         attendances: attCount.count,
         payments: payCount.count,
         workers: workerCount.count,
@@ -226,7 +235,7 @@ export async function purgeAllWorkersAndHistory(_req: Request, res: Response) {
 
     return res.json({
       success: true,
-      message: "Barcha ishchilar va tarix (davomat, to'lovlar) to'liq o'chirildi. Faqat egasi hisobi qoldirildi.",
+      message: "Barcha ishchilar va tarix (davomat, hajm, to'lovlar) to'liq o'chirildi. Faqat egasi hisobi qoldirildi.",
       data: result,
     });
   } catch (err: any) {

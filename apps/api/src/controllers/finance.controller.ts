@@ -4,16 +4,34 @@ import { Prisma } from '@prisma/client';
 import { WorkerRole, WorkerStatus, PaymentMethod } from '@akfa/shared';
 
 export async function getFinanceOverview(_req: Request, res: Response) {
-  // Aggregate present attendances
+  // Aggregate present attendances (base daily wages)
   const presentAttendances = await prisma.attendance.findMany({
     where: { status: 'PRESENT' },
     select: { rateSnapshot: true },
   });
 
-  const totalAccrued = presentAttendances.reduce(
+  const totalBaseSalaries = presentAttendances.reduce(
     (acc, att) => acc.add(att.rateSnapshot),
     new Prisma.Decimal(0)
   );
+
+  // Aggregate volume earnings and square meters
+  const volumeRecords = await prisma.volumeRecord.findMany({
+    select: { squareMeters: true, totalAmount: true },
+  });
+
+  const totalVolumeEarnings = volumeRecords.reduce(
+    (acc, vol) => acc.add(vol.totalAmount),
+    new Prisma.Decimal(0)
+  );
+
+  const totalVolumeM2 = volumeRecords.reduce(
+    (acc, vol) => acc.add(vol.squareMeters),
+    new Prisma.Decimal(0)
+  );
+
+  // Combined Total Accrued = Base Daily Wages + Volume-based Earnings
+  const totalAccrued = totalBaseSalaries.add(totalVolumeEarnings);
 
   // Aggregate payments
   const payments = await prisma.payment.findMany({
@@ -29,20 +47,22 @@ export async function getFinanceOverview(_req: Request, res: Response) {
     where: { status: 'ACTIVE' },
   });
 
-  // Calculate pending debt (positive balance only)
-  // To get exact total pending balance across all workers:
+  // Calculate pending debt (positive balance only) across all workers
   const workers = await prisma.worker.findMany({
     include: {
       attendances: { where: { status: 'PRESENT' }, select: { rateSnapshot: true } },
+      volumes: { select: { totalAmount: true } },
       payments: { select: { amount: true } },
     },
   });
 
   let totalPendingBalance = new Prisma.Decimal(0);
   for (const w of workers) {
-    const earned = w.attendances.reduce((acc, a) => acc.add(a.rateSnapshot), new Prisma.Decimal(0));
+    const baseEarned = w.attendances.reduce((acc, a) => acc.add(a.rateSnapshot), new Prisma.Decimal(0));
+    const volumeEarned = w.volumes.reduce((acc, v) => acc.add(v.totalAmount), new Prisma.Decimal(0));
+    const totalEarned = baseEarned.add(volumeEarned);
     const paid = w.payments.reduce((acc, p) => acc.add(p.amount), new Prisma.Decimal(0));
-    const balance = earned.sub(paid);
+    const balance = totalEarned.sub(paid);
     if (balance.greaterThan(0)) {
       totalPendingBalance = totalPendingBalance.add(balance);
     }
@@ -52,6 +72,9 @@ export async function getFinanceOverview(_req: Request, res: Response) {
     success: true,
     data: {
       totalAccruedSalaries: totalAccrued.toNumber(),
+      totalBaseSalaries: totalBaseSalaries.toNumber(),
+      totalVolumeEarnings: totalVolumeEarnings.toNumber(),
+      totalVolumeM2: totalVolumeM2.toNumber(),
       totalPaymentsDistributed: totalPaid.toNumber(),
       totalPendingBalance: totalPendingBalance.toNumber(),
       activeWorkerCount,
@@ -66,6 +89,9 @@ export async function getWorkerFinanceSummaries(_req: Request, res: Response) {
       attendances: {
         where: { status: 'PRESENT' },
         select: { rateSnapshot: true },
+      },
+      volumes: {
+        select: { squareMeters: true, totalAmount: true },
       },
       payments: {
         select: { amount: true },
@@ -83,11 +109,25 @@ export async function getWorkerFinanceSummaries(_req: Request, res: Response) {
       }
       return sum + 1;
     }, 0);
-    // Salary strictly calculated from attendance rate snapshots
-    const totalAccruedSalary = w.attendances.reduce(
+
+    const baseSalary = w.attendances.reduce(
       (sum, a) => sum.add(a.rateSnapshot),
       new Prisma.Decimal(0)
     );
+
+    const volumeM2 = w.volumes.reduce(
+      (sum, v) => sum.add(v.squareMeters),
+      new Prisma.Decimal(0)
+    );
+
+    const volumeEarnings = w.volumes.reduce(
+      (sum, v) => sum.add(v.totalAmount),
+      new Prisma.Decimal(0)
+    );
+
+    // Combined total earnings: Base Salary + Volume Earnings
+    const totalAccruedSalary = baseSalary.add(volumeEarnings);
+
     const totalPaid = w.payments.reduce(
       (sum, p) => sum.add(p.amount),
       new Prisma.Decimal(0)
@@ -100,7 +140,11 @@ export async function getWorkerFinanceSummaries(_req: Request, res: Response) {
       role: w.role as WorkerRole,
       status: w.status as WorkerStatus,
       currentDailyRate: Number(w.dailyRate),
+      currentRatePerM2: Number(w.ratePerM2),
       daysWorked,
+      baseSalary: baseSalary.toNumber(),
+      volumeM2: volumeM2.toNumber(),
+      volumeEarnings: volumeEarnings.toNumber(),
       totalAccruedSalary: totalAccruedSalary.toNumber(),
       totalPaid: totalPaid.toNumber(),
       balanceOwed: balanceOwed.toNumber(),
@@ -122,6 +166,9 @@ export async function getWorkerFinanceDetails(req: Request, res: Response) {
       attendances: {
         orderBy: { date: 'desc' },
       },
+      volumes: {
+        orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      },
       payments: {
         orderBy: { paymentDate: 'desc' },
       },
@@ -136,10 +183,23 @@ export async function getWorkerFinanceDetails(req: Request, res: Response) {
   }
 
   const presentAttendances = worker.attendances.filter((a) => a.status === 'PRESENT');
-  const totalAccruedSalary = presentAttendances.reduce(
+  const baseSalary = presentAttendances.reduce(
     (sum, a) => sum.add(a.rateSnapshot),
     new Prisma.Decimal(0)
   );
+
+  const volumeM2 = worker.volumes.reduce(
+    (sum, v) => sum.add(v.squareMeters),
+    new Prisma.Decimal(0)
+  );
+
+  const volumeEarnings = worker.volumes.reduce(
+    (sum, v) => sum.add(v.totalAmount),
+    new Prisma.Decimal(0)
+  );
+
+  const totalAccruedSalary = baseSalary.add(volumeEarnings);
+
   const totalPaid = worker.payments.reduce(
     (sum, p) => sum.add(p.amount),
     new Prisma.Decimal(0)
@@ -161,11 +221,15 @@ export async function getWorkerFinanceDetails(req: Request, res: Response) {
       worker: {
         ...worker,
         dailyRate: Number(worker.dailyRate),
+        ratePerM2: Number(worker.ratePerM2),
         createdAt: worker.createdAt.toISOString(),
         updatedAt: worker.updatedAt.toISOString(),
         archivedAt: worker.archivedAt?.toISOString() || null,
       },
       daysWorked,
+      baseSalary: baseSalary.toNumber(),
+      volumeM2: volumeM2.toNumber(),
+      volumeEarnings: volumeEarnings.toNumber(),
       totalAccruedSalary: totalAccruedSalary.toNumber(),
       totalPaid: totalPaid.toNumber(),
       balanceOwed: balanceOwed.toNumber(),
@@ -181,6 +245,14 @@ export async function getWorkerFinanceDetails(req: Request, res: Response) {
           updatedAt: a.updatedAt.toISOString(),
         };
       }),
+      volumes: worker.volumes.map((v) => ({
+        ...v,
+        squareMeters: Number(v.squareMeters),
+        rateSnapshot: Number(v.rateSnapshot),
+        totalAmount: Number(v.totalAmount),
+        createdAt: v.createdAt.toISOString(),
+        updatedAt: v.updatedAt.toISOString(),
+      })),
       payments: worker.payments.map((p) => ({
         ...p,
         amount: Number(p.amount),

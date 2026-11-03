@@ -41,6 +41,7 @@ model Worker {
   phone       String?
   role        String        @default("usta") // 'usta' | 'shogird' | 'yordamchi' | 'ornatuvchi' | 'boshqa'
   dailyRate   Decimal       @db.Decimal(14, 2) // Daily wage rate in UZS (so'm)
+  ratePerM2   Decimal       @default(0) @db.Decimal(14, 2) // Price per square meter in UZS (so'm)
   status      String        @default("ACTIVE") // 'ACTIVE' | 'ARCHIVED'
   archivedAt  DateTime?
   createdAt   DateTime      @default(now())
@@ -48,6 +49,7 @@ model Worker {
 
   attendances Attendance[]
   payments    Payment[]
+  volumes     VolumeRecord[]
 
   @@index([status])
   @@map("workers")
@@ -83,4 +85,21 @@ model Payment {
   @@index([workerId])
   @@index([paymentDate])
   @@map("payments")
+}
+
+model VolumeRecord {
+  id           String   @id @default(uuid())
+  workerId     String
+  worker       Worker   @relation(fields: [workerId], references: [id], onDelete: Restrict)
+  date         String   // ISO YYYY-MM-DD format
+  squareMeters Decimal  @db.Decimal(10, 2) // Completed m² (e.g. 14.50)
+  rateSnapshot Decimal  @db.Decimal(14, 2) // Snapshot of rate per m² at recording time
+  totalAmount  Decimal  @db.Decimal(14, 2) // Automatically calculated: squareMeters * rateSnapshot
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([workerId])
+  @@index([date])
+  @@map("volume_records")
 }

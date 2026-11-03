@@ -123,9 +123,11 @@ export const MoliyaView: React.FC = () => {
           <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white truncate tracking-tight">
             {formatCurrency(financeOverview.totalAccruedSalaries)}
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-2.5">
-            Davomat va kunlik stavkalar asosida
-          </p>
+          <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-2.5 flex flex-wrap items-center gap-1.5">
+            <span>Kunlik: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(financeOverview.totalBaseSalaries ?? 0)}</strong></span>
+            <span>&bull;</span>
+            <span>Ishbay ({Number(financeOverview.totalVolumeM2 ?? 0).toFixed(1)} m²): <strong className="text-emerald-700 dark:text-emerald-400">{formatCurrency(financeOverview.totalVolumeEarnings ?? 0)}</strong></span>
+          </div>
         </div>
 
         <div className="glass-clay-card p-6 relative overflow-hidden group">
@@ -168,7 +170,7 @@ export const MoliyaView: React.FC = () => {
       {/* Worker Financial Summaries Card & Table */}
       <Card
         title={t.moliya.title}
-        subtitle="Davomat jurnali asosida hisoblangan maoshlar va to'lovlar balansi"
+        subtitle="Davomat jurnali va ishbay hajm (m²) asosida hisoblangan maoshlar va to'lovlar balansi"
         padding="none"
       >
         {/* Mobile View: High-clarity Claymorphism Worker Cards */}
@@ -212,53 +214,75 @@ export const MoliyaView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2x2 Financial Metrics Grid */}
-                <div className="grid grid-cols-2 gap-2.5 text-xs">
-                  <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
-                      {t.moliya.tableDaysWorked}
+                {/* Financial Metrics Grid: Base Salary vs Volume Earnings vs Total */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5 leading-snug">
+                      {t.moliya.tableBaseSalary || 'Kunlik maosh'}
                     </span>
-                    <span className="font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
-                      {summary.daysWorked} kun
+                    <span className="font-black text-slate-900 dark:text-white text-xs sm:text-sm whitespace-nowrap">
+                      {formatCurrency(summary.baseSalary ?? 0)}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                      {summary.daysWorked} ish kuni
                     </span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
-                      {t.moliya.tableAccrued}
+                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5 leading-snug">
+                      {t.moliya.tableVolumeEarnings || 'Ishbay (m²) haqi'}
                     </span>
-                    <span className="font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
+                    <span className="font-black text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm whitespace-nowrap">
+                      {formatCurrency(summary.volumeEarnings ?? 0)}
+                    </span>
+                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">
+                      {(summary.volumeM2 ?? 0).toFixed(1)} m² bajarilgan
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5 leading-snug">
+                      {t.moliya.tableTotalEarnings || 'Jami hisoblangan'}
+                    </span>
+                    <span className="font-black text-slate-900 dark:text-white text-xs sm:text-sm whitespace-nowrap">
                       {formatCurrency(summary.totalAccruedSalary)}
                     </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                      Kunlik + Ishbay
+                    </span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
+                  <div className="p-2.5 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-0.5 leading-snug">
                       {t.moliya.tablePaid}
                     </span>
-                    <span className="font-black text-slate-700 dark:text-slate-300 text-sm whitespace-nowrap">
+                    <span className="font-black text-slate-700 dark:text-slate-300 text-xs sm:text-sm whitespace-nowrap">
                       {formatCurrency(summary.totalPaid)}
                     </span>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-white/80 dark:border-slate-700 flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1 leading-snug">
-                      {t.moliya.tableBalance}
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                      To'langan jami
                     </span>
-                    {isOverpaid ? (
-                      <span className="font-black text-blue-700 dark:text-blue-300 text-xs whitespace-nowrap">
-                        {formatCurrency(Math.abs(summary.balanceOwed))} avans
-                      </span>
-                    ) : summary.balanceOwed === 0 ? (
-                      <span className="font-bold text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
-                        0 so'm
-                      </span>
-                    ) : (
-                      <span className="font-black text-amber-700 dark:text-amber-400 text-xs whitespace-nowrap">
-                        {formatCurrency(summary.balanceOwed)} qarz
-                      </span>
-                    )}
                   </div>
+                </div>
+
+                {/* Outstanding balance status bar */}
+                <div className="p-2.5 rounded-xl bg-white/70 dark:bg-slate-800/80 border border-white/80 dark:border-slate-700 flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                    {t.moliya.tableBalance}:
+                  </span>
+                  {isOverpaid ? (
+                    <span className="font-black text-blue-700 dark:text-blue-300 text-xs whitespace-nowrap bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-lg">
+                      {formatCurrency(Math.abs(summary.balanceOwed))} avans
+                    </span>
+                  ) : summary.balanceOwed === 0 ? (
+                    <span className="font-bold text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                      0 so'm (hisob yopilgan)
+                    </span>
+                  ) : (
+                    <span className="font-black text-amber-700 dark:text-amber-400 text-xs whitespace-nowrap bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg">
+                      {formatCurrency(summary.balanceOwed)} qarz
+                    </span>
+                  )}
                 </div>
 
                 {/* Full-width Action Button: To'lov berish */}
@@ -276,18 +300,20 @@ export const MoliyaView: React.FC = () => {
           })}
         </div>
 
-        {/* Desktop / Tablet View: Full Table */}
+        {/* Desktop / Tablet View: Full Table with Base Salary, Volume Earnings & Combined Total */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-200/40 dark:bg-slate-800/60 backdrop-blur-md text-xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider border-b border-white/80 dark:border-slate-700">
               <tr>
-                <th className="py-3.5 px-5">{t.moliya.tableWorker}</th>
-                <th className="py-3.5 px-5">{t.moliya.tableDailyRate}</th>
-                <th className="py-3.5 px-5">{t.moliya.tableDaysWorked}</th>
-                <th className="py-3.5 px-5">{t.moliya.tableAccrued}</th>
-                <th className="py-3.5 px-5">{t.moliya.tablePaid}</th>
-                <th className="py-3.5 px-5 text-right">{t.moliya.tableBalance}</th>
-                <th className="py-3.5 px-5 text-right">{t.common.actions}</th>
+                <th className="py-3.5 px-4">{t.moliya.tableWorker}</th>
+                <th className="py-3.5 px-4">{t.moliya.tableDailyRate}</th>
+                <th className="py-3.5 px-4">{t.moliya.tableDaysWorked}</th>
+                <th className="py-3.5 px-4">{t.moliya.tableBaseSalary || 'Kunlik maosh'}</th>
+                <th className="py-3.5 px-4">{t.moliya.tableVolumeEarnings || 'Ishbay (m²)'}</th>
+                <th className="py-3.5 px-4">{t.moliya.tableTotalEarnings || 'Jami hisoblangan'}</th>
+                <th className="py-3.5 px-4">{t.moliya.tablePaid}</th>
+                <th className="py-3.5 px-4 text-right">{t.moliya.tableBalance}</th>
+                <th className="py-3.5 px-4 text-right">{t.common.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/60 dark:divide-slate-800/80">
@@ -295,8 +321,8 @@ export const MoliyaView: React.FC = () => {
                 const isOverpaid = summary.balanceOwed < 0;
                 return (
                   <tr key={summary.workerId} className="hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="py-4 px-5">
-                      <div className="flex items-center gap-2.5">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
                         <span className="font-black text-slate-900 dark:text-white">{summary.name}</span>
                         <Badge role={summary.role} size="sm" />
                         {summary.status === 'ARCHIVED' && (
@@ -306,19 +332,28 @@ export const MoliyaView: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="py-4 px-5 text-slate-600 dark:text-slate-300 font-bold">
+                    <td className="py-4 px-4 text-slate-600 dark:text-slate-300 font-bold whitespace-nowrap">
                       {formatCurrency(summary.currentDailyRate)}
                     </td>
-                    <td className="py-4 px-5 font-black text-slate-900 dark:text-white">
+                    <td className="py-4 px-4 font-black text-slate-900 dark:text-white whitespace-nowrap">
                       {summary.daysWorked} kun
                     </td>
-                    <td className="py-4 px-5 font-black text-slate-900 dark:text-white">
+                    <td className="py-4 px-4 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                      {formatCurrency(summary.baseSalary ?? 0)}
+                    </td>
+                    <td className="py-4 px-4 font-bold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                      <span>{(summary.volumeM2 ?? 0).toFixed(1)} m²</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 block font-normal">
+                        ({formatCurrency(summary.volumeEarnings ?? 0)})
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 font-black text-slate-900 dark:text-white whitespace-nowrap">
                       {formatCurrency(summary.totalAccruedSalary)}
                     </td>
-                    <td className="py-4 px-5 text-slate-600 dark:text-slate-300 font-bold">
+                    <td className="py-4 px-4 text-slate-600 dark:text-slate-300 font-bold whitespace-nowrap">
                       {formatCurrency(summary.totalPaid)}
                     </td>
-                    <td className="py-4 px-5 text-right whitespace-nowrap">
+                    <td className="py-4 px-4 text-right whitespace-nowrap">
                       {isOverpaid ? (
                         <span className="text-xs font-black text-blue-800 dark:text-blue-300 bg-gradient-to-b from-blue-50 to-blue-100 dark:from-blue-950/60 dark:to-blue-900/40 px-3 py-1 rounded-full border border-blue-200/90 dark:border-blue-800/80 shadow-clay-pill whitespace-nowrap inline-block shrink-0">
                           {formatCurrency(Math.abs(summary.balanceOwed))} avans
@@ -333,7 +368,7 @@ export const MoliyaView: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="py-4 px-5 text-right">
+                    <td className="py-4 px-4 text-right whitespace-nowrap">
                       <Button
                         variant="secondary"
                         size="sm"

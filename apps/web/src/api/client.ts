@@ -9,6 +9,11 @@ import {
   PaymentMethod,
   WorkerFinanceSummary,
   WorkshopFinanceOverview,
+  VolumeRecord,
+  VolumeCreateInput,
+  VolumeUpdateInput,
+  VolumeOverview,
+  WorkerVolumeSummary,
 } from '@akfa/shared';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -75,10 +80,25 @@ async function request<T>(
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutMs = options.signal ? 0 : 5000;
+  const timeoutId = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+      signal: options.signal || controller.signal,
+    });
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      throw new ApiError("Server bilan aloqa vaqti tugadi (5s).", 408);
+    }
+    throw err;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
 
   // Handle Token Expiration and Refresh
   if (response.status === 401 && !isRetry && !endpoint.startsWith('/auth/login') && !endpoint.startsWith('/auth/refresh')) {
@@ -297,5 +317,40 @@ export const api = {
       }),
     getPayments: async (limit?: number) =>
       request<{ success: boolean; data: PaymentRecord[] }>(`/finance/payments${limit ? `?limit=${limit}` : ''}`),
+  },
+
+  volumes: {
+    list: async (params?: { date?: string; workerId?: string; month?: string }) => {
+      const query = new URLSearchParams();
+      if (params?.date) query.set('date', params.date);
+      if (params?.workerId) query.set('workerId', params.workerId);
+      if (params?.month) query.set('month', params.month);
+      const qs = query.toString();
+      return request<{ success: boolean; data: VolumeRecord[] }>(`/volumes${qs ? `?${qs}` : ''}`);
+    },
+    get: async (id: string) =>
+      request<{ success: boolean; data: VolumeRecord }>(`/volumes/${id}`),
+    create: async (payload: VolumeCreateInput) =>
+      request<{ success: boolean; data: VolumeRecord; message: string }>('/volumes', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+    update: async (id: string, payload: VolumeUpdateInput) =>
+      request<{ success: boolean; data: VolumeRecord; message: string }>(`/volumes/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      }),
+    delete: async (id: string) =>
+      request<{ success: boolean; message: string }>(`/volumes/${id}`, {
+        method: 'DELETE',
+      }),
+    getOverview: async (date?: string) =>
+      request<{
+        success: boolean;
+        data: {
+          overview: VolumeOverview;
+          workerSummaries: WorkerVolumeSummary[];
+        };
+      }>(`/volumes/overview${date ? `?date=${date}` : ''}`),
   },
 };

@@ -27,14 +27,21 @@ export interface WorkerFinanceSummary {
   role: WorkerRole;
   status: WorkerStatus;
   currentDailyRate: number;
+  currentRatePerM2?: number;
   daysWorked: number; // Count of 'PRESENT' days
-  totalAccruedSalary: number; // Sum of (rateSnapshot * 1) for PRESENT days
+  baseSalary?: number; // Base earnings from attendance (daily wages)
+  volumeM2?: number; // Total completed square meters
+  volumeEarnings?: number; // Total volume earnings from daily entries
+  totalAccruedSalary: number; // Combined Total Earnings: Base Salary + Volume Earnings
   totalPaid: number; // Sum of recorded payments
   balanceOwed: number; // totalAccruedSalary - totalPaid (positive = shop owes worker, negative = overpaid/advance)
 }
 
 export interface WorkshopFinanceOverview {
-  totalAccruedSalaries: number;
+  totalAccruedSalaries: number; // Combined total earnings across all workers
+  totalBaseSalaries?: number; // Total base wages from attendance
+  totalVolumeEarnings?: number; // Total volume-based earnings
+  totalVolumeM2?: number; // Total square meters across workers
   totalPaymentsDistributed: number;
   totalPendingBalance: number;
   activeWorkerCount: number;

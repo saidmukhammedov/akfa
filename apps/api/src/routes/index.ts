@@ -3,6 +3,7 @@ import authRoutes from './auth.routes.js';
 import workerRoutes from './worker.routes.js';
 import attendanceRoutes from './attendance.routes.js';
 import financeRoutes from './finance.routes.js';
+import volumeRoutes from './volume.routes.js';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/auth', authRoutes);
 router.use('/workers', workerRoutes);
 router.use('/attendance', attendanceRoutes);
 router.use('/finance', financeRoutes);
+router.use('/volumes', volumeRoutes);
 
 export default router;
