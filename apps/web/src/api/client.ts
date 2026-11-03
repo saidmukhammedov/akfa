@@ -14,6 +14,8 @@ import {
   VolumeUpdateInput,
   VolumeOverview,
   WorkerVolumeSummary,
+  VoiceProcessResult,
+  VoiceAuditLogItem,
 } from '@akfa/shared';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -353,4 +355,29 @@ export const api = {
         };
       }>(`/volumes/overview${date ? `?date=${date}` : ''}`),
   },
+
+  voice: {
+    processAudio: async (audioBase64: string, mimeType: string = 'audio/webm') =>
+      request<{ success: boolean; data: VoiceProcessResult }>('/voice/process-audio', {
+        method: 'POST',
+        body: JSON.stringify({ audioBase64, mimeType }),
+      }),
+
+    parseText: async (text: string, date?: string) =>
+      request<{ success: boolean; data: VoiceProcessResult }>('/voice/parse-text', {
+        method: 'POST',
+        body: JSON.stringify({ text, date }),
+      }),
+
+    confirm: async (confirmationToken: string, decision: 'CONFIRM' | 'REJECT' = 'CONFIRM') =>
+      request<{ success: boolean; data: { success: boolean; message: string; affectedCount: number } }>('/voice/confirm', {
+        method: 'POST',
+        body: JSON.stringify({ confirmationToken, decision }),
+      }),
+
+    getHistory: async () =>
+      request<{ success: boolean; data: VoiceAuditLogItem[] }>('/voice/history'),
+  },
 };
+
+export const apiClient = api;

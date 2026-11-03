@@ -17,7 +17,8 @@ model Owner {
   language     String         @default("uz") // 'uz' | 'ru'
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  sessions     RefreshToken[]
+  sessions       RefreshToken[]
+  voiceAuditLogs VoiceAuditLog[]
 
   @@map("owners")
 }
@@ -102,4 +103,24 @@ model VolumeRecord {
   @@index([workerId])
   @@index([date])
   @@map("volume_records")
+}
+
+model VoiceAuditLog {
+  id                 String    @id @default(uuid())
+  ownerId            String
+  owner              Owner     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  transcript         String
+  intent             String
+  status             String    // 'PENDING_CONFIRMATION' | 'CONFIRMED' | 'REJECTED' | 'READ_ONLY' | 'FAILED'
+  payload            Json
+  resultSummary      String?
+  confirmationToken  String?   @unique
+  expiresAt          DateTime?
+  confirmedAt        DateTime?
+  createdAt          DateTime  @default(now())
+
+  @@index([ownerId])
+  @@index([confirmationToken])
+  @@index([createdAt])
+  @@map("voice_audit_logs")
 }

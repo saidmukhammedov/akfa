@@ -1,4 +1,4 @@
-import { Worker, AttendanceRecord, PaymentRecord, OwnerProfile, WorkerFinanceSummary, WorkshopFinanceOverview } from '@akfa/shared';
+import { Worker, AttendanceRecord, PaymentRecord, OwnerProfile, WorkerFinanceSummary, WorkshopFinanceOverview, VoiceAuditLogItem } from '@akfa/shared';
 
 /**
  * Isolated development & in-memory relational store.
@@ -12,6 +12,7 @@ export interface DatabaseStore {
   workers: Worker[];
   attendances: AttendanceRecord[];
   payments: PaymentRecord[];
+  voiceAuditLogs: VoiceAuditLogItem[];
 }
 
 export const db: DatabaseStore = {
@@ -24,6 +25,7 @@ export const db: DatabaseStore = {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
+  voiceAuditLogs: [],
   workers: [
     {
       id: 'worker-1',

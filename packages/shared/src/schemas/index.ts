@@ -4,3 +4,4 @@ export * from './worker.schema.js';
 export * from './attendance.schema.js';
 export * from './finance.schema.js';
 export * from './volume.schema.js';
+export * from './voice.schema.js';

@@ -1,7 +1,9 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { Header } from './Header';
 import { Navigation, TabId } from './Navigation';
 import { useAppState } from '../../context/AppStateContext';
+import { VoiceCommandButton } from '../voice/VoiceCommandButton';
+import { VoiceCommandModal } from '../voice/VoiceCommandModal';
 import { AlertCircle, X } from 'lucide-react';
 
 interface AppShellProps {
@@ -12,6 +14,7 @@ interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ children, activeTab, onTabChange }) => {
   const { error, clearError } = useAppState();
+  const [isVoiceOpen, setIsVoiceOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen flex flex-col text-workshop-text dark:text-slate-100 pb-32 sm:pb-16 transition-colors">
@@ -25,7 +28,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeTab, onTabCh
       </div>
 
       <div className="relative z-10 flex flex-col flex-1">
-        <Header />
+        <Header onOpenVoice={() => setIsVoiceOpen(true)} />
         <Navigation activeTab={activeTab} onTabChange={onTabChange} />
 
         {/* Error Notification Banner with frosted glass */}
@@ -50,6 +53,18 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeTab, onTabCh
           {children}
         </main>
       </div>
+
+      {/* Floating Quick Voice Action Button */}
+      <VoiceCommandButton
+        variant="floating"
+        onClick={() => setIsVoiceOpen(true)}
+      />
+
+      {/* Uzbek Voice Command Modal */}
+      <VoiceCommandModal
+        isOpen={isVoiceOpen}
+        onClose={() => setIsVoiceOpen(false)}
+      />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import workerRoutes from './worker.routes.js';
 import attendanceRoutes from './attendance.routes.js';
 import financeRoutes from './finance.routes.js';
 import volumeRoutes from './volume.routes.js';
+import voiceRoutes from './voice.routes.js';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/workers', workerRoutes);
 router.use('/attendance', attendanceRoutes);
 router.use('/finance', financeRoutes);
 router.use('/volumes', volumeRoutes);
+router.use('/voice', voiceRoutes);
 
 export default router;
