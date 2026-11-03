@@ -139,6 +139,8 @@ export interface VoiceAuditLogItem {
   status: 'PENDING_CONFIRMATION' | 'CONFIRMED' | 'REJECTED' | 'READ_ONLY' | 'FAILED';
   payload: any;
   resultSummary?: string | null;
+  confirmationToken?: string | null;
+  expiresAt?: string | Date | null;
   createdAt: string;
   confirmedAt?: string | null;
 }

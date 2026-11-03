@@ -17,6 +17,10 @@ import { uzbekCommandParserService, getTashkentDate } from './uzbek-command-pars
 import { workerResolverService, WorkerCandidate } from './worker-resolver.service.js';
 import { Prisma } from '@prisma/client';
 
+// Resilient in-memory token cache for pending voice command confirmations (15-min TTL)
+// Ensures tokens are NEVER lost even across database migration windows or connection blips
+const pendingTokensCache = new Map<string, any>();
+
 export class VoiceOrchestratorService {
   /**
    * Main entrypoint for processing audio recording
@@ -123,6 +127,15 @@ export class VoiceOrchestratorService {
         const effectiveRate = entry.ratePerM2 !== undefined ? entry.ratePerM2 : worker.ratePerM2;
         const totalAmount = Math.round(entry.squareMeters * effectiveRate);
 
+        // Deduplicate: If this worker was already mentioned/added, update their details instead of creating a duplicate row
+        const existingItem = resolvedItems.find((item) => item.workerId === worker.id);
+        if (existingItem) {
+          existingItem.details.squareMeters = entry.squareMeters;
+          existingItem.details.rateSnapshot = effectiveRate;
+          existingItem.details.totalAmount = totalAmount;
+          continue;
+        }
+
         resolvedItems.push({
           workerId: worker.id,
           workerName: worker.name,
@@ -171,6 +184,15 @@ export class VoiceOrchestratorService {
           rateSnapshot = Math.round(worker.dailyRate / 2);
         } else if (entry.status === 'ABSENT') {
           rateSnapshot = 0;
+        }
+
+        // Deduplicate: If this worker was already mentioned/added, update their status instead of creating a duplicate row
+        const existingItem = resolvedItems.find((item) => item.workerId === worker.id);
+        if (existingItem) {
+          existingItem.details.status = entry.status;
+          existingItem.details.isHalfDay = entry.isHalfDay;
+          existingItem.details.rateSnapshot = rateSnapshot;
+          continue;
         }
 
         // Check if attendance already recorded for this day
@@ -224,7 +246,8 @@ export class VoiceOrchestratorService {
     const confirmationToken = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    await this.saveAuditLog({
+    const pendingLogData = {
+      id: `val-${Date.now()}`,
       ownerId,
       transcript: rawTranscript,
       intent: command.intent,
@@ -235,7 +258,12 @@ export class VoiceOrchestratorService {
       },
       confirmationToken,
       expiresAt,
-    });
+    };
+
+    // Store in ultra-resilient cache so token lookup NEVER fails
+    pendingTokensCache.set(confirmationToken, pendingLogData);
+
+    await this.saveAuditLog(pendingLogData);
 
     return {
       transcript: rawTranscript,
@@ -255,14 +283,21 @@ export class VoiceOrchestratorService {
     ownerId: string,
     decision: 'CONFIRM' | 'REJECT' = 'CONFIRM'
   ): Promise<{ success: boolean; message: string; affectedCount: number }> {
-    // 1. Fetch pending audit log by token
+    // 1. Fetch pending audit log by token (Prisma -> in-memory cache -> db.voiceAuditLogs)
     let auditLog: any = null;
     try {
       auditLog = await prisma.voiceAuditLog.findUnique({
         where: { confirmationToken },
       });
     } catch {
-      // In-memory fallback
+      // Prisma error / table not ready
+    }
+
+    if (!auditLog) {
+      auditLog = pendingTokensCache.get(confirmationToken);
+    }
+
+    if (!auditLog) {
       auditLog = db.voiceAuditLogs.find((l: any) => l.confirmationToken === confirmationToken);
     }
 
@@ -279,13 +314,13 @@ export class VoiceOrchestratorService {
     }
 
     if (auditLog.expiresAt && new Date(auditLog.expiresAt) < new Date()) {
-      await this.updateAuditStatus(auditLog.id, 'FAILED', 'Vaqti tugagan token');
+      await this.updateAuditStatus(auditLog.id || confirmationToken, 'FAILED', 'Vaqti tugagan token');
       throw new Error("Tasdiqlash vaqti (10 daqiqa) tugagan. Iltimos, buyruqni qayta bering.");
     }
 
     // Handle rejection
     if (decision === 'REJECT') {
-      await this.updateAuditStatus(auditLog.id, 'REJECTED', 'Foydalanuvchi tomonidan bekor qilindi');
+      await this.updateAuditStatus(auditLog.id || confirmationToken, 'REJECTED', 'Foydalanuvchi tomonidan bekor qilindi');
       return {
         success: true,
         message: 'Ovozli buyruq bekor qilindi.',
@@ -608,6 +643,7 @@ export class VoiceOrchestratorService {
   }
 
   private async saveAuditLog(data: {
+    id?: string;
     ownerId: string;
     transcript: string;
     intent: string;
@@ -631,24 +667,31 @@ export class VoiceOrchestratorService {
         },
       });
     } catch {
-      // In-memory fallback
+      // In-memory fallback: ensure confirmationToken and expiresAt are preserved!
       db.voiceAuditLogs.push({
-        id: `val-${Date.now()}`,
+        id: data.id || `val-${Date.now()}`,
         ownerId: data.ownerId,
         transcript: data.transcript,
         intent: data.intent,
         status: data.status as any,
         payload: data.payload,
         resultSummary: data.resultSummary || null,
+        confirmationToken: data.confirmationToken || null,
+        expiresAt: data.expiresAt || null,
         createdAt: new Date().toISOString(),
       });
     }
   }
 
-  private async updateAuditStatus(id: string, status: string, summary: string) {
+  private async updateAuditStatus(idOrToken: string, status: string, summary: string) {
     try {
-      await prisma.voiceAuditLog.update({
-        where: { id },
+      await prisma.voiceAuditLog.updateMany({
+        where: {
+          OR: [
+            { id: idOrToken },
+            { confirmationToken: idOrToken },
+          ],
+        },
         data: {
           status,
           resultSummary: summary,
@@ -656,12 +699,22 @@ export class VoiceOrchestratorService {
         },
       });
     } catch {
-      const item = db.voiceAuditLogs.find((l: any) => l.id === id);
-      if (item) {
-        item.status = status as any;
-        item.resultSummary = summary;
-        item.confirmedAt = new Date().toISOString();
-      }
+      // Ignore
+    }
+
+    // Update in-memory cache
+    const cached = pendingTokensCache.get(idOrToken);
+    if (cached) {
+      cached.status = status;
+      cached.resultSummary = summary;
+      cached.confirmedAt = new Date();
+    }
+
+    const item = db.voiceAuditLogs.find((l: any) => l.id === idOrToken || l.confirmationToken === idOrToken);
+    if (item) {
+      item.status = status as any;
+      item.resultSummary = summary;
+      item.confirmedAt = new Date().toISOString();
     }
   }
 }

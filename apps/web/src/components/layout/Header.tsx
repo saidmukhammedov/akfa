@@ -4,14 +4,9 @@ import { useAppState } from '../../context/AppStateContext';
 import { useAuth } from '../../context/AuthContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeSwitcher } from './ThemeSwitcher';
-import { VoiceCommandButton } from '../voice/VoiceCommandButton';
 import { ShieldCheck, Calendar, LogOut } from 'lucide-react';
 
-interface HeaderProps {
-  onOpenVoice?: () => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({ onOpenVoice }) => {
+export const Header: React.FC = () => {
   const { t, formatDate } = useLanguage();
   const { selectedDate } = useAppState();
   const { owner, logout } = useAuth();
@@ -49,10 +44,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenVoice }) => {
               <Calendar className="w-4 h-4 text-akfa-600 dark:text-blue-400" />
               <span>{formatDate(selectedDate, 'medium')}</span>
             </div>
-
-            {onOpenVoice && (
-              <VoiceCommandButton onClick={onOpenVoice} variant="header" />
-            )}
 
             <ThemeSwitcher compact />
             <LanguageSwitcher />

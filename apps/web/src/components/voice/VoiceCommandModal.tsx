@@ -36,6 +36,16 @@ const getSpeechRecognitionClass = (): (new () => any) | null => {
   return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
 };
 
+// Clean up accidental consecutive duplicate words or phrases from mobile speech engines
+const cleanDuplicatePhrases = (text: string): string => {
+  if (!text) return '';
+  // Collapse identical consecutive words: "ali ali" -> "ali"
+  let cleaned = text.replace(/\b([a-zA-Z0-9\u0400-\u04FF']+)(?:\s+\1\b)+/gi, '$1');
+  // Collapse identical consecutive two-word phrases: "ali bugun ali bugun" -> "ali bugun"
+  cleaned = cleaned.replace(/\b([a-zA-Z0-9\u0400-\u04FF']+\s+[a-zA-Z0-9\u0400-\u04FF']+)(?:\s+\1\b)+/gi, '$1');
+  return cleaned.trim();
+};
+
 export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, onClose }) => {
   const { t, formatCurrency, formatDate } = useLanguage();
   const { refreshData } = useAppState();
@@ -138,20 +148,30 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
     recognition.maxAlternatives = 1;
     speechRecognitionRef.current = recognition;
 
-    let accumulatedFinal = '';
-
     // Real-time transcript display
+    // Reconstruct full text from event.results fresh on each event — NO external accumulator.
+    // This completely eliminates the Android/WebKit exponential duplication bug.
     recognition.onresult = (event: any) => {
-      let interim = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const part = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          accumulatedFinal += (accumulatedFinal ? ' ' : '') + part;
-        } else {
-          interim += part;
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result && result[0]) {
+          const part = (result[0].transcript || '').trim();
+          if (part) {
+            if (result.isFinal) {
+              finalTranscript += (finalTranscript ? ' ' : '') + part;
+            } else {
+              interimTranscript += (interimTranscript ? ' ' : '') + part;
+            }
+          }
         }
       }
-      const fullText = (accumulatedFinal + (interim ? ' ' + interim : '')).trim();
+
+      let fullText = (finalTranscript + (interimTranscript ? ' ' + interimTranscript : '')).trim();
+      fullText = cleanDuplicatePhrases(fullText);
+
       if (fullText) {
         setLiveTranscript(fullText);
         liveTranscriptRef.current = fullText;
@@ -171,7 +191,6 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
     };
 
     // ── KEY FIX: onend fires AFTER all results are finalized ──────────────
-    // This eliminates the race condition of the previous approach.
     recognition.onend = () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -180,7 +199,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
       setIsRecording(false);
       speechRecognitionRef.current = null;
 
-      const finalText = liveTranscriptRef.current.trim();
+      const finalText = cleanDuplicatePhrases(liveTranscriptRef.current.trim());
       if (finalText) {
         processRecognizedText(finalText);
       } else {

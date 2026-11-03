@@ -28,7 +28,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, activeTab, onTabCh
       </div>
 
       <div className="relative z-10 flex flex-col flex-1">
-        <Header onOpenVoice={() => setIsVoiceOpen(true)} />
+        <Header />
         <Navigation activeTab={activeTab} onTabChange={onTabChange} />
 
         {/* Error Notification Banner with frosted glass */}
