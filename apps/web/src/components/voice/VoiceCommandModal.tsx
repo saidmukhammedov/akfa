@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAppState } from '../../context/AppStateContext';
 import { Modal } from '../ui/Modal';
@@ -19,6 +19,7 @@ import {
   Volume2,
   Send,
   RefreshCw,
+  Loader2,
 } from 'lucide-react';
 
 interface VoiceCommandModalProps {
@@ -27,6 +28,13 @@ interface VoiceCommandModalProps {
 }
 
 type ModalStep = 'RECORDING' | 'PROCESSING' | 'CONFIRMATION' | 'REPORT' | 'CLARIFICATION' | 'SUCCESS';
+
+// ─── Core fix: determine whether the browser has native Uzbek SpeechRecognition ───
+// Use `any` for the constructor type to avoid TS DOM lib version mismatches
+const getSpeechRecognitionClass = (): (new () => any) | null => {
+  if (typeof window === 'undefined') return null;
+  return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+};
 
 export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, onClose }) => {
   const { t, formatCurrency, formatDate } = useLanguage();
@@ -42,14 +50,28 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
   const [activeTabMode, setActiveTabMode] = useState<'VOICE' | 'TEXT'>('VOICE');
   const [liveTranscript, setLiveTranscript] = useState('');
 
+  // Refs – no stale closure problems
   const liveTranscriptRef = useRef('');
-  const speechRecognitionRef = useRef<any>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const speechRecognitionRef = useRef<any | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const isFinalizedRef = useRef(false); // prevent double-submit
 
-  // Reset state when opening/closing
+  const speechSupported = !!getSpeechRecognitionClass();
+
+  // ─── Cleanup ───────────────────────────────────────────────────────────────
+  const cleanupRecording = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (speechRecognitionRef.current) {
+      try { speechRecognitionRef.current.abort(); } catch {}
+      speechRecognitionRef.current = null;
+    }
+    setIsRecording(false);
+  }, []);
+
+  // Reset on open/close
   useEffect(() => {
     if (isOpen) {
       setStep('RECORDING');
@@ -58,275 +80,190 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
       setErrorMessage(null);
       setProcessResult(null);
       setManualText('');
-      setActiveTabMode('VOICE');
       setLiveTranscript('');
       liveTranscriptRef.current = '';
+      isFinalizedRef.current = false;
     } else {
       cleanupRecording();
     }
-  }, [isOpen]);
+  }, [isOpen, cleanupRecording]);
 
-  // Clean up media streams and timers
-  const cleanupRecording = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      try {
-        mediaRecorderRef.current.stop();
-      } catch {}
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    if (speechRecognitionRef.current) {
-      try {
-        speechRecognitionRef.current.abort();
-      } catch {}
-      speechRecognitionRef.current = null;
-    }
-    setIsRecording(false);
-  };
-
-  // Start recording
-  const startRecording = async () => {
-    setErrorMessage(null);
-    setLiveTranscript('');
-    liveTranscriptRef.current = '';
-    audioChunksRef.current = [];
-
-    // 1. Initialize native Web Speech API for real-time Uzbek transcription if available in browser
-    const SpeechRecClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecClass) {
-      try {
-        const recognition = new SpeechRecClass();
-        recognition.lang = 'uz-UZ';
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.maxAlternatives = 1;
-
-        let accumulated = '';
-        recognition.onresult = (event: any) => {
-          let interim = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcriptPart = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              accumulated += (accumulated ? ' ' : '') + transcriptPart;
-            } else {
-              interim += transcriptPart;
-            }
-          }
-          const fullText = (accumulated + (interim ? ' ' + interim : '')).trim();
-          if (fullText) {
-            setLiveTranscript(fullText);
-            liveTranscriptRef.current = fullText;
-          }
-        };
-
-        recognition.onerror = (e: any) => {
-          console.warn('[SpeechRecognition] error:', e.error);
-        };
-
-        recognition.start();
-        speechRecognitionRef.current = recognition;
-      } catch (recErr) {
-        console.warn('SpeechRecognition start error:', recErr);
+  // ─── Process recognized text via backend parseText ─────────────────────────
+  const processRecognizedText = useCallback(async (text: string) => {
+    if (isFinalizedRef.current) return;
+    isFinalizedRef.current = true;
+    setStep('PROCESSING');
+    try {
+      const res = await apiClient.voice.parseText(text.trim());
+      const result = res.data;
+      setProcessResult(result);
+      if (result.needsClarification) {
+        setStep('CLARIFICATION');
+      } else if (result.requiresConfirmation) {
+        setStep('CONFIRMATION');
+      } else if (result.report) {
+        setStep('REPORT');
+      } else {
+        setStep('CONFIRMATION');
       }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Ovozni tahlil qilishda xatolik yuz berdi.');
+      setStep('RECORDING');
+      isFinalizedRef.current = false;
     }
+  }, []);
 
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setErrorMessage("Ushbu brauzerda ovoz yozish (MediaRecorder) qo'llab-quvvatlanmaydi.");
+  // ─── Start recording ────────────────────────────────────────────────────────
+  const startRecording = useCallback(async () => {
+    const SpeechRecClass = getSpeechRecognitionClass();
+    if (!SpeechRecClass) {
+      // No browser speech support – switch user to text mode automatically
+      setActiveTabMode('TEXT');
+      setErrorMessage(
+        "Bu brauzer ovoz tanishni qo'llab-quvvatlamaydi. Iltimos, matnni kiriting."
+      );
       return;
     }
 
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
-      streamRef.current = stream;
+    setErrorMessage(null);
+    setLiveTranscript('');
+    liveTranscriptRef.current = '';
+    isFinalizedRef.current = false;
+    setRecordingSeconds(0);
 
-      // Select supported audio mimeType
-      let mimeType = 'audio/webm;codecs=opus';
-      if (!MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-        if (MediaRecorder.isTypeSupported('audio/webm')) {
-          mimeType = 'audio/webm';
-        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-          mimeType = 'audio/mp4';
+    const recognition = new SpeechRecClass();
+    recognition.lang = 'uz-UZ';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    speechRecognitionRef.current = recognition;
+
+    let accumulatedFinal = '';
+
+    // Real-time transcript display
+    recognition.onresult = (event: any) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const part = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          accumulatedFinal += (accumulatedFinal ? ' ' : '') + part;
         } else {
-          mimeType = '';
+          interim += part;
         }
       }
+      const fullText = (accumulatedFinal + (interim ? ' ' + interim : '')).trim();
+      if (fullText) {
+        setLiveTranscript(fullText);
+        liveTranscriptRef.current = fullText;
+      }
+    };
 
-      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-      mediaRecorderRef.current = recorder;
+    recognition.onerror = (event: any) => {
+      if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+        setErrorMessage('Mikrofon ruxsati berilmadi. Brauzer sozlamalaridan mikrofonni yoqing.');
+        cleanupRecording();
+        setStep('RECORDING');
+      } else if (event.error === 'no-speech') {
+        // Handled gracefully in onend
+      } else {
+        console.warn('[SpeechRecognition] error:', event.error);
+      }
+    };
 
-      recorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) {
-          audioChunksRef.current.push(e.data);
+    // ── KEY FIX: onend fires AFTER all results are finalized ──────────────
+    // This eliminates the race condition of the previous approach.
+    recognition.onend = () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      setIsRecording(false);
+      speechRecognitionRef.current = null;
+
+      const finalText = liveTranscriptRef.current.trim();
+      if (finalText) {
+        processRecognizedText(finalText);
+      } else {
+        if (!isFinalizedRef.current) {
+          setErrorMessage(
+            "Ovoz tanilmadi. Qayta urinib ko'ring yoki matnli kiritishdan foydalaning."
+          );
+          setStep('RECORDING');
         }
-      };
+      }
+    };
 
-      recorder.onstop = async () => {
-        if (audioChunksRef.current.length === 0) return;
-        const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        await handleAudioUpload(audioBlob);
-      };
-
-      recorder.start(250);
+    try {
+      recognition.start();
       setIsRecording(true);
-      setRecordingSeconds(0);
 
+      // Timer – max 60s then auto-stop
       timerRef.current = setInterval(() => {
         setRecordingSeconds((prev) => {
-          if (prev >= 45) {
+          if (prev >= 60) {
             stopRecording();
-            return 45;
+            return 60;
           }
           return prev + 1;
         });
       }, 1000);
     } catch (err: any) {
-      console.error('Microphone error:', err);
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setErrorMessage(t.voice?.permissionDenied || "Mikrofon ruxsati berilmadi. Sozlamalardan mikrofonni yoqing.");
-      } else {
-        setErrorMessage(`Mikrofonni ochishda xatolik: ${err.message}`);
-      }
+      setErrorMessage(`Mikrofon xatosi: ${err.message}`);
       setIsRecording(false);
     }
-  };
+  }, [cleanupRecording, processRecognizedText]);
 
-  // Stop recording
-  const stopRecording = () => {
+  // ─── Stop recording (recognition.onend handles the rest) ──────────────────
+  const stopRecording = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
     if (speechRecognitionRef.current) {
       try {
+        // .stop() gracefully finalizes, .abort() discards – we want .stop()
         speechRecognitionRef.current.stop();
       } catch {}
     }
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    setIsRecording(false);
-    setStep('PROCESSING');
-  };
+  }, []);
 
-  // Upload and process audio
-  const handleAudioUpload = async (audioBlob: Blob) => {
-    setStep('PROCESSING');
-    try {
-      const capturedTranscript = liveTranscriptRef.current.trim();
-
-      // Convert audio blob to base64
-      let audioBase64 = '';
-      try {
-        const arrayBuffer = await audioBlob.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        audioBase64 = btoa(binary);
-      } catch (err) {
-        console.warn('Audio base64 conversion warning:', err);
-      }
-
-      // If Uzbek speech was recognized in real-time by browser speech engine:
-      if (capturedTranscript) {
-        const res = await apiClient.voice.processAudio(
-          audioBase64 || undefined,
-          audioBlob.type || 'audio/webm',
-          capturedTranscript
-        );
-        handleProcessSuccess(res.data);
-        return;
-      }
-
-      // Fallback: send raw audio to server
-      const res = await apiClient.voice.processAudio(audioBase64, audioBlob.type || 'audio/webm');
-      handleProcessSuccess(res.data);
-    } catch (err: any) {
-      setErrorMessage(err.message || "Ovozni tahlil qilishda xatolik yuz berdi.");
-      setStep('RECORDING');
-    }
-  };
-
-  // Submit manual text command
+  // ─── Submit manual text command ────────────────────────────────────────────
   const handleTextSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualText.trim()) return;
-
-    setStep('PROCESSING');
     setErrorMessage(null);
-
-    try {
-      const res = await apiClient.voice.parseText(manualText.trim());
-      handleProcessSuccess(res.data);
-    } catch (err: any) {
-      setErrorMessage(err.message || "Buyruqni tahlil qilishda xatolik yuz berdi.");
-      setStep('RECORDING');
-    }
+    isFinalizedRef.current = false;
+    await processRecognizedText(manualText.trim());
   };
 
-  const handleProcessSuccess = (result: VoiceProcessResult) => {
-    setProcessResult(result);
-
-    if (result.needsClarification) {
-      setStep('CLARIFICATION');
-    } else if (result.requiresConfirmation) {
-      setStep('CONFIRMATION');
-    } else if (result.report) {
-      setStep('REPORT');
-    } else {
-      setStep('CONFIRMATION');
-    }
-  };
-
-  // Confirm and execute pending command
+  // ─── Confirm and execute pending command ───────────────────────────────────
   const handleConfirm = async () => {
     if (!processResult?.confirmationToken) return;
-
     setIsConfirming(true);
     setErrorMessage(null);
-
     try {
       await apiClient.voice.confirm(processResult.confirmationToken, 'CONFIRM');
       await refreshData();
       setStep('SUCCESS');
-      setTimeout(() => {
-        onClose();
-      }, 1800);
+      setTimeout(() => { onClose(); }, 1800);
     } catch (err: any) {
-      setErrorMessage(err.message || "Buyruqni saqlashda xatolik yuz berdi.");
+      setErrorMessage(err.message || 'Buyruqni saqlashda xatolik yuz berdi.');
     } finally {
       setIsConfirming(false);
     }
   };
 
-  // Format timer seconds (MM:SS)
   const formatTimer = (sec: number) => {
     const m = Math.floor(sec / 60);
     const s = sec % 60;
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={t.voice?.modalTitle || "O'zbekcha ovozli buyruq"} maxWidth="md">
       <div className="space-y-4">
-        {/* Error notification */}
+        {/* Error banner */}
         {errorMessage && (
           <div className="p-3.5 rounded-2xl bg-rose-50/90 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-300 font-bold flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
@@ -334,14 +271,15 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
           </div>
         )}
 
-        {/* STEP 1: RECORDING VIEW */}
+        {/* ── STEP 1: RECORDING ── */}
         {step === 'RECORDING' && (
           <div className="space-y-5">
-            {/* Mode switch: Voice vs Text */}
+            {/* Mode tabs */}
             <div className="flex items-center justify-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl">
               <button
                 type="button"
                 onClick={() => setActiveTabMode('VOICE')}
+                disabled={isRecording}
                 className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   activeTabMode === 'VOICE'
                     ? 'bg-white dark:bg-slate-900 text-akfa-700 dark:text-blue-400 shadow-sm'
@@ -355,7 +293,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTabMode('TEXT')}
+                onClick={() => { setActiveTabMode('TEXT'); cleanupRecording(); }}
                 className={`flex-1 py-1.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                   activeTabMode === 'TEXT'
                     ? 'bg-white dark:bg-slate-900 text-akfa-700 dark:text-blue-400 shadow-sm'
@@ -371,7 +309,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
 
             {activeTabMode === 'VOICE' ? (
               <div className="flex flex-col items-center justify-center py-6 text-center space-y-4">
-                {/* Audio pulse button */}
+                {/* Mic button */}
                 <div className="relative flex items-center justify-center">
                   {isRecording && (
                     <>
@@ -394,17 +332,19 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
 
                 <div>
                   <h4 className="text-base font-black text-slate-900 dark:text-white">
-                    {isRecording ? t.voice?.listening || "Tinglanmoqda..." : t.voice?.startRecording || "Ovoz yozishni boshlash"}
+                    {isRecording
+                      ? t.voice?.listening || 'Tinglanmoqda...'
+                      : t.voice?.startRecording || 'Ovoz yozishni boshlash'}
                   </h4>
                   <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
                     {isRecording
-                      ? `Yozilmoqda: ${formatTimer(recordingSeconds)} (to'xtatish uchun qizil tugmani bosing)`
+                      ? `Yozilmoqda: ${formatTimer(recordingSeconds)} — to'xtatish uchun qizil tugmani bosing`
                       : t.voice?.speakPrompt || "O'zbek tilida gapiring (masalan: 'Bugun Aziz 25 kvadrat ishladi')"}
                   </p>
                 </div>
 
-                {/* Real-time recognized speech preview */}
-                {liveTranscript && (
+                {/* Live transcript preview */}
+                {liveTranscript ? (
                   <div className="w-full text-left p-3.5 rounded-2xl bg-blue-50/90 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 text-xs animate-in fade-in duration-200">
                     <span className="font-bold text-akfa-700 dark:text-blue-300 flex items-center gap-1.5 mb-1">
                       <Volume2 className="w-3.5 h-3.5 text-akfa-600 dark:text-blue-400 animate-pulse" />
@@ -414,22 +354,33 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
                       "{liveTranscript}"
                     </p>
                   </div>
+                ) : (
+                  !isRecording && (
+                    /* Hint examples – only when not recording */
+                    <div className="w-full text-left p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5">
+                      <span className="font-black text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-akfa-600 dark:text-blue-400" />
+                        {t.voice?.examples?.title || 'Foydali ovozli buyruq misollari:'}
+                      </span>
+                      <ul className="text-slate-600 dark:text-slate-400 space-y-1 font-medium pl-1">
+                        <li>&bull; {t.voice?.examples?.vol1 || '"Bugun Jamshid 25 kvadrat, Sherzod 18 kvadrat ishladi"'}</li>
+                        <li>&bull; {t.voice?.examples?.att1 || '"Bugun Jamshid va Sherzod keldi, Jasur kelmadi"'}</li>
+                        <li>&bull; {t.voice?.examples?.rep1 || '"Bugungi hisobotni ko\'rsat"'}</li>
+                      </ul>
+                    </div>
+                  )
                 )}
 
-                {/* Example prompts pill */}
-                <div className="w-full text-left p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5">
-                  <span className="font-black text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-akfa-600 dark:text-blue-400" />
-                    {t.voice?.examples?.title || "Foydali ovozli buyruq misollari:"}
-                  </span>
-                  <ul className="text-slate-600 dark:text-slate-400 space-y-1 font-medium pl-1">
-                    <li>&bull; {t.voice?.examples?.vol1 || "“Bugun Jamshid 25 kvadrat, Sherzod 18 kvadrat ishladi”"}</li>
-                    <li>&bull; {t.voice?.examples?.att1 || "“Bugun Jamshid va Sherzod keldi, Jasur kelmadi”"}</li>
-                    <li>&bull; {t.voice?.examples?.rep1 || "“Bugungi hisobotni ko'rsat”"}</li>
-                  </ul>
-                </div>
+                {/* Browser compatibility note */}
+                {!speechSupported && (
+                  <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">
+                    ⚠️ Ushbu brauzer ovoz tanishni qo'llab-quvvatlamaydi.
+                    Iltimos, «Matnli kiritish» bo'limini ishlating.
+                  </p>
+                )}
               </div>
             ) : (
+              /* Text mode */
               <form onSubmit={handleTextSubmit} className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
@@ -448,7 +399,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
                   <Button type="button" variant="ghost" size="sm" onClick={onClose}>
                     {t.common.cancel}
                   </Button>
-                  <Button type="submit" variant="primary" size="sm" className="rounded-2xl">
+                  <Button type="submit" variant="primary" size="sm" className="rounded-2xl" disabled={!manualText.trim()}>
                     <Send className="w-3.5 h-3.5" />
                     <span>Yuborish</span>
                   </Button>
@@ -458,29 +409,30 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
           </div>
         )}
 
-        {/* STEP 2: PROCESSING VIEW */}
+        {/* ── STEP 2: PROCESSING ── */}
         {step === 'PROCESSING' && (
           <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-14 h-14 rounded-full border-4 border-akfa-600 border-t-transparent animate-spin flex items-center justify-center" />
+            <Loader2 className="w-12 h-12 text-akfa-600 dark:text-blue-400 animate-spin" />
             <div>
               <h4 className="text-base font-black text-slate-900 dark:text-white">
-                {t.voice?.processing || "Ovoz tahlil qilinmoqda..."}
+                {t.voice?.processing || 'Buyruq tahlil qilinmoqda...'}
               </h4>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
-                Google Cloud Speech V2 (uz-UZ) va AI buyruqni tekshirmoqda...
-              </p>
+              {liveTranscript && (
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-2 italic">
+                  «{liveTranscript}»
+                </p>
+              )}
             </div>
           </div>
         )}
 
-        {/* STEP 3: CONFIRMATION VIEW (MUTATING OPERATIONS) */}
+        {/* ── STEP 3: CONFIRMATION ── */}
         {step === 'CONFIRMATION' && processResult && (
           <div className="space-y-4 animate-in fade-in duration-200">
-            {/* Transcript Quote */}
             <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 space-y-1">
               <span className="text-[11px] font-black uppercase tracking-wider text-akfa-800 dark:text-blue-300 flex items-center gap-1.5">
                 <Volume2 className="w-3.5 h-3.5 text-akfa-600 dark:text-blue-400" />
-                {t.voice?.transcriptLabel || "Eshitilgan buyruq matni:"}
+                {t.voice?.transcriptLabel || 'Eshitilgan buyruq matni:'}
               </span>
               <p className="text-xs sm:text-sm font-black text-slate-900 dark:text-white italic">
                 "{processResult.transcript}"
@@ -491,7 +443,6 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
               </div>
             </div>
 
-            {/* Resolved Items List */}
             <div className="space-y-2">
               <span className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                 {t.voice?.affectedWorkers || "Tegishli ishchilar va ma'lumotlar:"}
@@ -538,9 +489,8 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/60 dark:border-slate-800">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setStep('RECORDING')}>
+              <Button type="button" variant="ghost" size="sm" onClick={() => { setStep('RECORDING'); isFinalizedRef.current = false; setLiveTranscript(''); liveTranscriptRef.current = ''; }}>
                 Qayta gapirish
               </Button>
               <Button
@@ -551,13 +501,13 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
                 onClick={handleConfirm}
                 className="rounded-2xl shadow-clay-btn-primary px-5 py-2 font-black"
               >
-                {isConfirming ? t.common.loading : t.voice?.confirmAndExecute || "Tasdiqlash va bajarish"}
+                {isConfirming ? t.common.loading : t.voice?.confirmAndExecute || 'Tasdiqlash va bajarish'}
               </Button>
             </div>
           </div>
         )}
 
-        {/* STEP 4: REPORT VIEW (READ-ONLY QUERIES) */}
+        {/* ── STEP 4: REPORT ── */}
         {step === 'REPORT' && processResult?.report && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60">
@@ -566,7 +516,6 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
               </span>
             </div>
 
-            {/* Daily Report */}
             {processResult.report.type === 'DAILY_REPORT' && (
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 text-xs">
@@ -583,7 +532,6 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
                     </span>
                   </div>
                 </div>
-
                 <div className="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/70 flex justify-between items-center">
                   <span className="text-xs font-black text-emerald-900 dark:text-emerald-300 uppercase">
                     Bugungi jami hisoblangan:
@@ -595,7 +543,6 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
               </div>
             )}
 
-            {/* Monthly Report */}
             {processResult.report.type === 'MONTHLY_REPORT' && (
               <div className="space-y-2 text-xs">
                 <div className="p-3 rounded-xl bg-white/70 dark:bg-slate-800/70 border border-white/80 dark:border-slate-700 flex justify-between">
@@ -619,7 +566,6 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
               </div>
             )}
 
-            {/* Worker Salary Report */}
             {processResult.report.type === 'WORKER_SALARY' && (
               <div className="space-y-2.5 text-xs">
                 <div className="flex items-center justify-between pb-2 border-b border-white/60 dark:border-slate-700">
@@ -647,7 +593,6 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
               </div>
             )}
 
-            {/* Volume Report */}
             {processResult.report.type === 'VOLUME_REPORT' && (
               <div className="space-y-2.5 text-xs">
                 <div className="p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 flex justify-between items-center">
@@ -675,7 +620,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
           </div>
         )}
 
-        {/* STEP 5: CLARIFICATION VIEW */}
+        {/* ── STEP 5: CLARIFICATION ── */}
         {step === 'CLARIFICATION' && processResult && (
           <div className="py-6 flex flex-col items-center justify-center text-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 flex items-center justify-center">
@@ -683,7 +628,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
             </div>
             <div>
               <h4 className="text-base font-black text-slate-900 dark:text-white">
-                {t.voice?.clarificationTitle || "Aniqlashtirish talab etiladi"}
+                {t.voice?.clarificationTitle || 'Aniqlashtirish talab etiladi'}
               </h4>
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-2 px-4">
                 {processResult.clarificationMessage}
@@ -693,7 +638,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
               type="button"
               variant="primary"
               size="md"
-              onClick={() => setStep('RECORDING')}
+              onClick={() => { setStep('RECORDING'); isFinalizedRef.current = false; setLiveTranscript(''); liveTranscriptRef.current = ''; }}
               className="rounded-2xl"
             >
               <RefreshCw className="w-4 h-4 mr-1.5" />
@@ -702,14 +647,14 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
           </div>
         )}
 
-        {/* STEP 6: SUCCESS VIEW */}
+        {/* ── STEP 6: SUCCESS ── */}
         {step === 'SUCCESS' && (
           <div className="py-10 flex flex-col items-center justify-center text-center space-y-3">
             <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center animate-in zoom-in-75">
               <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
             </div>
             <h4 className="text-base font-black text-slate-900 dark:text-white">
-              {t.voice?.successSaved || "Buyruq muvaffaqiyatli bajarildi va saqlandi!"}
+              {t.voice?.successSaved || 'Buyruq muvaffaqiyatli bajarildi va saqlandi!'}
             </h4>
           </div>
         )}

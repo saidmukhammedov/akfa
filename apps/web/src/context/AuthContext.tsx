@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { OwnerProfile } from '@akfa/shared';
 import { api, tokenStorage, ApiError } from '../api/client';
 import { useLanguage } from './LanguageContext';
@@ -60,10 +60,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [authError, setAuthError] = useState<string | null>(null);
   const { setLang } = useLanguage();
 
+  // Track last successful login timestamp to guard against cold-start 401 race conditions.
+  // Render.com free tier servers wake up slowly — a valid JWT can return 401 for ~10-20s
+  // after login while the server initializes. We ignore akfa:unauthorized within 30s of login.
+  const lastLoginTimeRef = useRef<number>(0);
+
   useEffect(() => {
     const token = tokenStorage.getAccessToken();
     if (token) {
-      // Silently verify or refresh profile in the background without blocking UI
+      // Silently verify and refresh profile in the background without blocking UI
       api.auth.getProfile()
         .then((profileRes) => {
           if (profileRes.success && profileRes.data) {
@@ -77,7 +82,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         })
         .catch(() => {
-          // Token refresh / unauthorized event in client.ts will handle expiry if invalid
+          // getProfile failure (network timeout / server cold-start) is silently ignored.
+          // We do NOT force-logout on getProfile errors — that would cause the redirect loop.
+          // Genuine session expiry is handled by the akfa:unauthorized event below,
+          // which itself is guarded against spurious cold-start 401s via lastLoginTimeRef.
         });
     } else {
       // If unauthenticated, silently check backend status in the background
@@ -91,6 +99,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     const handleUnauthorized = () => {
+      // Guard: ignore spurious 401s within 30 seconds of a successful login.
+      // Render.com cold-start can cause the server to return 401 transiently even with a valid token.
+      const timeSinceLogin = Date.now() - lastLoginTimeRef.current;
+      if (timeSinceLogin < 30_000) {
+        // Still within the login grace period — do NOT log the user out
+        return;
+      }
       tokenStorage.clearTokens();
       try {
         localStorage.removeItem('akfa_owner');
@@ -115,6 +130,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch {}
         setOwner(res.data.user);
         setIsAuthenticated(true);
+        // Record login time BEFORE setting isAuthenticated so the 30s grace period
+        // is active immediately when the dashboard mounts and fires background requests.
+        lastLoginTimeRef.current = Date.now();
         if (res.data.user.language) {
           setLang(res.data.user.language as 'uz' | 'ru');
         }
@@ -136,6 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } catch {}
       setOwner(res.data.owner);
       setIsAuthenticated(true);
+      lastLoginTimeRef.current = Date.now();
       setIsInitialized(true);
     } catch (err: any) {
       const msg = err instanceof ApiError ? err.message : 'Hisob yaratishda xatolik';
