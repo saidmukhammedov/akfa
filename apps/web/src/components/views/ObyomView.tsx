@@ -73,6 +73,17 @@ export const ObyomView: React.FC = () => {
     setSelectedDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
   };
 
+  // Sync initial worker selection when workers list loads
+  React.useEffect(() => {
+    if (isModalOpen && !workerId && workers.length > 0) {
+      const firstW = activeWorkers[0] || workers[0];
+      if (firstW) {
+        setWorkerId(firstW.id);
+        setRateSnapshot(String(firstW.ratePerM2 ?? 0));
+      }
+    }
+  }, [isModalOpen, workers, activeWorkers, workerId]);
+
   // Open Add Modal
   const openAddModal = (targetWorkerId?: string) => {
     setEditingRecordId(null);
@@ -631,7 +642,7 @@ export const ObyomView: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         title={editingRecordId ? t.obyom.editVolumeTitle : t.obyom.newVolumeTitle}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
           {formError && (
             <div className="p-3.5 rounded-2xl bg-rose-50/90 backdrop-blur-md border border-rose-200 text-xs sm:text-sm text-rose-800 font-bold flex items-start gap-2.5 shadow-clay-card">
               <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
@@ -641,21 +652,34 @@ export const ObyomView: React.FC = () => {
 
           {/* Worker Select */}
           <div>
-            <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] sm:text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 sm:mb-2">
               {t.obyom.workerLabel}
             </label>
             <select
               value={workerId}
               onChange={(e) => handleWorkerChange(e.target.value)}
-              className="w-full px-4 py-3 bg-white/60 dark:bg-slate-800/80 backdrop-blur-xl border border-white/85 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)]"
+              className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-white/60 dark:bg-slate-800/80 backdrop-blur-xl border border-white/85 dark:border-slate-700 rounded-2xl text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-akfa-500/20 focus:border-akfa-500 transition-all shadow-[inset_0_2px_4px_rgba(15,23,42,0.06),_0_1px_2px_rgba(255,255,255,0.8)]"
               required
             >
+              <option value="" disabled className="bg-white dark:bg-slate-900 text-slate-400">
+                {t.obyom.selectWorker}
+              </option>
               {workers.map((w) => (
                 <option key={w.id} value={w.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                  {w.name} &bull; {w.role} ({formatCurrency(w.ratePerM2 ?? 0)}/m²)
+                  {w.name} — {formatCurrency(w.ratePerM2 ?? 0)}/m² ({t.roles[w.role] || w.role})
                 </option>
               ))}
             </select>
+            {(() => {
+              const currentW = workers.find((w) => w.id === workerId);
+              if (!currentW) return null;
+              return (
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 px-1">
+                  <span>Mutaxassisligi: <strong className="text-slate-700 dark:text-slate-200">{t.roles[currentW.role] || currentW.role}</strong></span>
+                  <span>Standart: <strong className="text-akfa-700 dark:text-blue-400 font-black">{formatCurrency(currentW.ratePerM2 ?? 0)}/m²</strong></span>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Date Input */}
@@ -677,17 +701,24 @@ export const ObyomView: React.FC = () => {
               onChange={(e) => setSquareMeters(e.target.value)}
               required
             />
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {[5, 10, 15, 20, 25, 30].map((m2) => (
-                <button
-                  key={m2}
-                  type="button"
-                  onClick={() => setSquareMeters(String(m2))}
-                  className="clay-interactive px-2.5 py-1 text-xs bg-white/70 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 rounded-lg font-bold border border-white/80 dark:border-slate-700 cursor-pointer"
-                >
-                  {m2} m²
-                </button>
-              ))}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mt-2">
+              {[5, 10, 15, 20, 25, 30].map((m2) => {
+                const isSelected = squareMeters === String(m2);
+                return (
+                  <button
+                    key={m2}
+                    type="button"
+                    onClick={() => setSquareMeters(String(m2))}
+                    className={`clay-interactive py-1.5 px-2 text-xs rounded-xl font-bold border transition-all cursor-pointer text-center ${
+                      isSelected
+                        ? 'bg-akfa-600 dark:bg-akfa-500 text-white border-akfa-700 dark:border-akfa-400 shadow-clay-pill'
+                        : 'bg-white/70 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-white/80 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {m2} m²
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -701,33 +732,40 @@ export const ObyomView: React.FC = () => {
               onChange={(e) => setRateSnapshot(e.target.value)}
               required
             />
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {[10000, 15000, 20000, 25000, 30000].map((rate) => (
-                <button
-                  key={rate}
-                  type="button"
-                  onClick={() => setRateSnapshot(String(rate))}
-                  className="clay-interactive px-2.5 py-1 text-xs bg-white/70 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 rounded-lg font-bold border border-white/80 dark:border-slate-700 cursor-pointer"
-                >
-                  {formatCurrency(rate)}
-                </button>
-              ))}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mt-2">
+              {[10000, 15000, 20000, 25000, 30000, 35000].map((rate) => {
+                const isSelected = rateSnapshot === String(rate);
+                return (
+                  <button
+                    key={rate}
+                    type="button"
+                    onClick={() => setRateSnapshot(String(rate))}
+                    className={`clay-interactive py-1.5 px-1 text-[11px] sm:text-xs rounded-xl font-bold border transition-all cursor-pointer text-center whitespace-nowrap ${
+                      isSelected
+                        ? 'bg-akfa-600 dark:bg-akfa-500 text-white border-akfa-700 dark:border-akfa-400 shadow-clay-pill'
+                        : 'bg-white/70 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-white/80 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {formatCurrency(rate)}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Live Calculation Preview */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-400/5 to-teal-500/10 dark:from-emerald-950/40 dark:to-teal-950/20 border border-emerald-500/20 rounded-2xl space-y-1.5">
+          <div className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-400/5 to-teal-500/10 dark:from-emerald-950/40 dark:to-teal-950/20 border border-emerald-500/20 space-y-1">
             <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-semibold">
               <span>{t.obyom.previewCalculation}:</span>
-              <span>
+              <span className="font-bold text-slate-700 dark:text-slate-300">
                 {previewM2 > 0 ? previewM2 : 0} m² × {formatCurrency(previewRate)}
               </span>
             </div>
             <div className="flex items-center justify-between pt-1 border-t border-emerald-500/20">
-              <span className="text-xs font-black uppercase tracking-wider text-emerald-900 dark:text-emerald-300">
+              <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-emerald-900 dark:text-emerald-300">
                 {t.obyom.calculatedTotal}:
               </span>
-              <span className="text-lg sm:text-xl font-black text-emerald-700 dark:text-emerald-400">
+              <span className="text-base sm:text-xl font-black text-emerald-700 dark:text-emerald-400">
                 {formatCurrency(previewTotal)}
               </span>
             </div>
@@ -742,12 +780,13 @@ export const ObyomView: React.FC = () => {
           />
 
           {/* Modal Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/60 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-2.5 sm:gap-3 pt-3 sm:pt-4 border-t border-white/60 dark:border-slate-800">
             <Button
               type="button"
               variant="ghost"
               size="md"
               onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 text-xs sm:text-sm font-bold"
             >
               {t.common.cancel}
             </Button>
@@ -756,7 +795,7 @@ export const ObyomView: React.FC = () => {
               variant="primary"
               size="md"
               disabled={isSubmitting}
-              className="rounded-2xl shadow-clay-btn-primary"
+              className="rounded-2xl shadow-clay-btn-primary px-5 py-2 text-xs sm:text-sm font-extrabold"
             >
               {isSubmitting ? t.common.loading : t.common.save}
             </Button>
