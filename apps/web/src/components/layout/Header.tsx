@@ -22,7 +22,7 @@ export const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-auto">
         <div className="flex items-center justify-between min-h-[84px] sm:min-h-[92px] pt-3.5 pb-7.5 sm:pt-4 sm:pb-8.5">
           {/* Logo & Workshop Name */}
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3.5 -translate-y-2">
             {/* Enhanced Modern AKFA Architectural Emblem */}
             <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-akfa-600 to-indigo-700 p-0.5 shadow-[0_8px_20px_-4px_rgba(37,99,235,0.45)] border border-white/40 dark:border-blue-400/30 flex items-center justify-center select-none flex-shrink-0 group">
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-white/25 via-transparent to-transparent pointer-events-none" />
@@ -56,7 +56,7 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Right Controls: Date indicator, Theme Switcher, Language Switcher & Logout */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5 -translate-y-2">
             <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-800/80 backdrop-blur-md h-10 sm:h-11 px-3.5 rounded-2xl border border-white/90 dark:border-slate-700 shadow-clay-pill">
               <Calendar className="w-4 h-4 text-akfa-600 dark:text-blue-400" />
               <span>{formatDate(selectedDate, 'medium')}</span>
