@@ -46,9 +46,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
         </div>
       </nav>
 
-      {/* Mobile Navigation Bar (Floating Glass Island Dock above bottom edge) */}
-      <nav className="sm:hidden fixed bottom-2.5 left-3.5 right-3.5 max-w-md mx-auto z-50 bg-white/80 dark:bg-slate-900/90 backdrop-blur-3xl border border-white/85 dark:border-slate-800/90 rounded-[22px] shadow-[0_8px_28px_rgba(15,23,42,0.12)] dark:shadow-[0_8px_28px_rgba(0,0,0,0.5)] p-1 safe-area-pb transform-gpu">
-        <div className="grid grid-cols-5 gap-0.5">
+      {/* Mobile Floating Navigation Dock: higher elevation, narrower width, taller height, soft rounded corners */}
+      <nav className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px] z-50 bg-white/85 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/70 dark:border-slate-800/70 rounded-2xl shadow-[0_12px_32px_-4px_rgba(15,23,42,0.15)] dark:shadow-[0_12px_32px_-4px_rgba(0,0,0,0.6)] p-1.5 transform-gpu">
+        <div className="grid grid-cols-5 gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -56,14 +56,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, onTabChange }
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-[14px] transition-all duration-200 active:scale-90 cursor-pointer ${
+                className={`flex flex-col items-center justify-center py-2 px-0.5 rounded-xl transition-all duration-200 active:scale-95 cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-b from-akfa-500 to-akfa-600 dark:from-blue-600 dark:to-indigo-700 text-white shadow-clay-btn-primary border border-akfa-400/50 dark:border-blue-500/50 font-extrabold'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold'
+                    ? 'bg-gradient-to-b from-akfa-600 to-indigo-600 dark:from-blue-600 dark:to-indigo-600 text-white shadow-[0_4px_14px_rgba(79,70,229,0.28)] border border-white/25 dark:border-white/20 font-bold'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'
                 }`}
               >
-                <Icon className={`w-[18px] h-[18px] mb-0.5 ${isActive ? 'stroke-[2.4] text-white drop-shadow-sm' : 'stroke-[2] text-slate-500 dark:text-slate-400'}`} />
-                <span className="text-[9.5px] leading-tight tracking-tight truncate max-w-full">{item.label}</span>
+                <Icon className={`w-5 h-5 mb-1 ${isActive ? 'stroke-[2.2] text-white drop-shadow-sm' : 'stroke-[1.8] text-slate-500 dark:text-slate-400'}`} />
+                <span className="text-[10px] leading-tight tracking-tight truncate max-w-full">{item.label}</span>
               </button>
             );
           })}

@@ -22,7 +22,7 @@ export const VoiceCommandButton: React.FC<VoiceCommandButtonProps> = ({
         onClick={onClick}
         title={t.voice?.title || 'Ovozli buyruqlar'}
         aria-label={t.voice?.title || 'Ovozli buyruqlar'}
-        className={`fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 p-3.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-akfa-600 via-indigo-600 to-violet-600 text-white shadow-[0_8px_20px_-4px_rgba(79,70,229,0.35)] border border-white/30 cursor-pointer ${className}`}
+        className={`fixed bottom-24 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 p-3.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-akfa-600 via-indigo-600 to-violet-600 text-white shadow-[0_8px_20px_-4px_rgba(79,70,229,0.35)] border border-white/30 cursor-pointer ${className}`}
       >
         <Mic className="w-5 h-5 stroke-[2.2] text-white" />
         <span className="hidden sm:inline-block font-extrabold text-xs tracking-tight text-white/95">

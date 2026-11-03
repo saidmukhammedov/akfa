@@ -12,7 +12,7 @@ export const Header: React.FC = () => {
   const { owner, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 bg-white/65 dark:bg-slate-900/80 backdrop-blur-2xl border-b border-white/70 dark:border-slate-800/80 shadow-[0_8px_25px_-5px_rgba(15,23,42,0.05)] transform-gpu transition-colors">
+    <header className="sticky top-0 z-40 bg-gradient-to-b from-white/90 via-white/70 to-white/20 dark:from-slate-900/95 dark:via-slate-900/80 dark:to-slate-900/20 backdrop-blur-xl border-b-0 shadow-none transform-gpu transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-18 py-2">
           {/* Logo & Workshop Name */}
@@ -39,13 +39,13 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Right Controls: Date indicator, Theme Switcher, Language Switcher & Logout */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
-            <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-800/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/90 dark:border-slate-700 shadow-clay-pill">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white/70 dark:bg-slate-800/80 backdrop-blur-md h-10 sm:h-11 px-3.5 rounded-2xl border border-white/90 dark:border-slate-700 shadow-clay-pill">
               <Calendar className="w-4 h-4 text-akfa-600 dark:text-blue-400" />
               <span>{formatDate(selectedDate, 'medium')}</span>
             </div>
 
-            <ThemeSwitcher compact />
+            <ThemeSwitcher />
             <LanguageSwitcher />
 
             {owner && (
@@ -54,9 +54,9 @@ export const Header: React.FC = () => {
                 onClick={logout}
                 title={t.auth.logoutButton || 'Chiqish'}
                 aria-label="Chiqish"
-                className="clay-interactive p-2 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 rounded-xl transition-all cursor-pointer border border-transparent hover:border-rose-200/50"
+                className="clay-interactive w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 rounded-2xl transition-all cursor-pointer border border-white/60 dark:border-slate-700/60 glass-slot shadow-clay-card"
               >
-                <LogOut className="w-4 h-4 stroke-[2.2]" />
+                <LogOut className="w-4.5 h-4.5 stroke-[2.2]" />
               </button>
             )}
           </div>

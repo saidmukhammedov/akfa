@@ -1,49 +1,37 @@
 import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
-import { Languages } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { Language } from '@akfa/shared';
 
 export const LanguageSwitcher: React.FC = () => {
   const { lang, setLang } = useLanguage();
   const { isAuthenticated, updateOwnerProfile } = useAuth();
 
-  const handleLanguageChange = (newLang: Language) => {
-    setLang(newLang);
+  const handleLanguageToggle = () => {
+    const nextLang: Language = lang === 'uz' ? 'ru' : 'uz';
+    setLang(nextLang);
     if (isAuthenticated) {
-      updateOwnerProfile({ language: newLang }).catch(() => {
+      updateOwnerProfile({ language: nextLang }).catch(() => {
         // Silently keep local language if backend call encounters error
       });
     }
   };
 
+  const tooltipLabel = lang === 'uz' ? "Русский языкга ўтиш" : "O'zbek tiliga o'tish";
+
   return (
-    <div className="inline-flex items-center p-1 glass-slot rounded-full select-none">
-      <div className="px-1.5 text-slate-400">
-        <Languages className="w-3.5 h-3.5" />
-      </div>
-      <button
-        type="button"
-        onClick={() => handleLanguageChange('uz')}
-        className={`px-3 py-1 text-xs font-black rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
-          lang === 'uz'
-            ? 'bg-gradient-to-b from-akfa-500 to-akfa-600 text-white shadow-clay-btn-primary border border-akfa-400/50'
-            : 'text-slate-600 hover:text-slate-900'
-        }`}
-      >
-        UZ
-      </button>
-      <button
-        type="button"
-        onClick={() => handleLanguageChange('ru')}
-        className={`px-3 py-1 text-xs font-black rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
-          lang === 'ru'
-            ? 'bg-gradient-to-b from-akfa-500 to-akfa-600 text-white shadow-clay-btn-primary border border-akfa-400/50'
-            : 'text-slate-600 hover:text-slate-900'
-        }`}
-      >
-        RU
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={handleLanguageToggle}
+      title={tooltipLabel}
+      aria-label={tooltipLabel}
+      className="clay-interactive h-10 px-3 sm:h-11 sm:px-3.5 rounded-2xl glass-slot text-slate-700 dark:text-slate-200 hover:text-akfa-600 dark:hover:text-blue-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all cursor-pointer shadow-clay-card flex items-center justify-center gap-1.5 border border-white/60 dark:border-slate-700/60"
+    >
+      <Globe className="w-4 h-4 stroke-[2.2] text-slate-500 dark:text-slate-400" />
+      <span className="font-black text-xs tracking-wider uppercase">
+        {lang}
+      </span>
+    </button>
   );
 };
