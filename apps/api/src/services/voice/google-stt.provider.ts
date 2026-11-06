@@ -1,4 +1,5 @@
 import { ITranscriptionProvider, TranscriptionResult } from './transcription.types.js';
+import { mergeOverlappingChunks } from '@akfa/shared';
 
 /**
  * Google Cloud Speech-to-Text Provider (Chirp 2 / V2 API with uz-UZ support).
@@ -75,6 +76,8 @@ export class GoogleCloudSTTProvider implements ITranscriptionProvider {
         languageCode: 'uz-UZ',
         model: 'chirp_2',
         enableAutomaticPunctuation: true,
+        enableWordTimeOffsets: true,
+        enableWordConfidence: true,
         speechContexts: [
           {
             phrases: [
@@ -87,6 +90,10 @@ export class GoogleCloudSTTProvider implements ITranscriptionProvider {
               'kelmadi',
               'keldi',
               'yarim kun',
+              'bosh usta',
+              'shogird',
+              'stavka',
+              'hisobot',
               ...vocabularyHints,
             ],
             boost: 15.0,
@@ -110,11 +117,16 @@ export class GoogleCloudSTTProvider implements ITranscriptionProvider {
     }
 
     const data: any = await response.json();
-    const transcript = data.results
+    const chunks: string[] = data.results
       ?.map((r: any) => r.alternatives?.[0]?.transcript)
       ?.filter(Boolean)
-      ?.join(' ')
-      ?.trim() || '';
+      ?.map((t: string) => t.trim()) || [];
+
+    let transcript = '';
+    for (const chunk of chunks) {
+      transcript = mergeOverlappingChunks(transcript, chunk);
+    }
+    transcript = transcript.trim();
 
     const confidence = data.results?.[0]?.alternatives?.[0]?.confidence ?? 0.92;
 

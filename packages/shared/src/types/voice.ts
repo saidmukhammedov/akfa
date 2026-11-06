@@ -116,6 +116,11 @@ export type VoiceReportResult =
 
 export interface VoiceProcessResult {
   transcript: string;
+  originalTranscript?: string;
+  cleanedTranscript?: string;
+  wasCleaned?: boolean;
+  cleanReason?: string;
+  cleaningMethod?: 'RULE_BASED' | 'AI_MODEL' | 'NONE';
   intent: VoiceIntent;
   date: string;
   requiresConfirmation: boolean;

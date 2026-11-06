@@ -15,6 +15,7 @@ import {
 import { transcriptionService } from './transcription.service.js';
 import { uzbekCommandParserService, getTashkentDate } from './uzbek-command-parser.service.js';
 import { workerResolverService, WorkerCandidate } from './worker-resolver.service.js';
+import { aiTranscriptCorrectorService } from './ai-transcript-corrector.service.js';
 import { Prisma } from '@prisma/client';
 
 // Resilient in-memory token cache for pending voice command confirmations (15-min TTL)
@@ -35,35 +36,57 @@ export class VoiceOrchestratorService {
   }
 
   /**
-   * Main entrypoint for processing raw text command
+   * Main entrypoint for processing raw text command with smart duplicate cleaning & AI post-processing
    */
   async processTextCommand(
     text: string,
     ownerId: string,
-    overrideDate?: string
+    overrideDate?: string,
+    originalTranscriptInput?: string
   ): Promise<VoiceProcessResult> {
-    const rawTranscript = text.trim();
-    const command = await uzbekCommandParserService.parseCommand(rawTranscript, overrideDate);
+    const rawTranscript = (originalTranscriptInput || text).trim();
+
+    // Context-aware Smart Duplicate & AI correction post-processing stage
+    const correction = await aiTranscriptCorrectorService.correctTranscript(rawTranscript, ownerId);
+    const effectiveTranscript = correction.cleanedTranscript;
+
+    const command = await uzbekCommandParserService.parseCommand(effectiveTranscript, overrideDate);
+
+    // Helper for building consistent VoiceProcessResult containing both original and cleaned versions
+    const buildResult = (base: Partial<VoiceProcessResult>): VoiceProcessResult => ({
+      transcript: effectiveTranscript,
+      originalTranscript: rawTranscript,
+      cleanedTranscript: effectiveTranscript,
+      wasCleaned: correction.wasCleaned,
+      cleanReason: correction.cleanReason,
+      cleaningMethod: correction.method,
+      intent: command.intent,
+      date: command.date,
+      requiresConfirmation: false,
+      ...base,
+    });
 
     // If clarification needed
     if (command.needsClarification) {
       await this.saveAuditLog({
         ownerId,
-        transcript: rawTranscript,
+        transcript: effectiveTranscript,
         intent: command.intent,
         status: 'FAILED',
-        payload: command,
+        payload: {
+          command,
+          originalTranscript: rawTranscript,
+          cleanedTranscript: effectiveTranscript,
+          wasCleaned: correction.wasCleaned,
+          cleaningMethod: correction.method,
+        },
         resultSummary: command.clarificationMessage,
       });
 
-      return {
-        transcript: rawTranscript,
-        intent: command.intent,
-        date: command.date,
-        requiresConfirmation: false,
+      return buildResult({
         needsClarification: true,
         clarificationMessage: command.clarificationMessage,
-      };
+      });
     }
 
     // 1. READ-ONLY INTENTS: Execute and return immediately
@@ -77,20 +100,23 @@ export class VoiceOrchestratorService {
 
       await this.saveAuditLog({
         ownerId,
-        transcript: rawTranscript,
+        transcript: effectiveTranscript,
         intent: command.intent,
         status: 'READ_ONLY',
-        payload: { command, report },
+        payload: {
+          command,
+          report,
+          originalTranscript: rawTranscript,
+          cleanedTranscript: effectiveTranscript,
+          wasCleaned: correction.wasCleaned,
+          cleaningMethod: correction.method,
+        },
         resultSummary: 'Hisobot muvaffaqiyatli shakllantirildi',
       });
 
-      return {
-        transcript: rawTranscript,
-        intent: command.intent,
-        date: command.date,
-        requiresConfirmation: false,
+      return buildResult({
         report,
-      };
+      });
     }
 
     // 2. DATA-MODIFYING INTENTS: Resolve workers and prepare confirmation preview
@@ -103,24 +129,16 @@ export class VoiceOrchestratorService {
         if (!match.success) {
           if (match.isAmbiguous) {
             const names = match.potentialMatches?.map((w) => w.name).join(', ');
-            return {
-              transcript: rawTranscript,
-              intent: command.intent,
-              date: command.date,
-              requiresConfirmation: false,
+            return buildResult({
               needsClarification: true,
               clarificationMessage: `'${entry.workerName}' bo'yicha bir nechta usta topildi (${names}). Iltimos, aniqroq ayting.`,
-            };
+            });
           }
 
-          return {
-            transcript: rawTranscript,
-            intent: command.intent,
-            date: command.date,
-            requiresConfirmation: false,
+          return buildResult({
             needsClarification: true,
             clarificationMessage: `'${entry.workerName}' ismli usta ustaxona tizimida topilmadi.`,
-          };
+          });
         }
 
         const worker = match.worker!;
@@ -147,7 +165,7 @@ export class VoiceOrchestratorService {
             squareMeters: entry.squareMeters,
             rateSnapshot: effectiveRate,
             totalAmount,
-            notes: entry.notes || `Ovozli buyruq orqali: "${rawTranscript}"`,
+            notes: entry.notes || `Ovozli buyruq orqali: "${effectiveTranscript}"`,
           },
         });
       }
@@ -158,24 +176,16 @@ export class VoiceOrchestratorService {
         if (!match.success) {
           if (match.isAmbiguous) {
             const names = match.potentialMatches?.map((w) => w.name).join(', ');
-            return {
-              transcript: rawTranscript,
-              intent: command.intent,
-              date: command.date,
-              requiresConfirmation: false,
+            return buildResult({
               needsClarification: true,
               clarificationMessage: `'${entry.workerName}' bo'yicha bir nechta usta topildi (${names}). Iltimos, aniqroq ayting.`,
-            };
+            });
           }
 
-          return {
-            transcript: rawTranscript,
-            intent: command.intent,
-            date: command.date,
-            requiresConfirmation: false,
+          return buildResult({
             needsClarification: true,
             clarificationMessage: `'${entry.workerName}' ismli usta ustaxona tizimida topilmadi.`,
-          };
+          });
         }
 
         const worker = match.worker!;
@@ -224,7 +234,7 @@ export class VoiceOrchestratorService {
             status: entry.status,
             isHalfDay: entry.isHalfDay,
             rateSnapshot,
-            notes: entry.notes || `Ovozli buyruq orqali: "${rawTranscript}"`,
+            notes: entry.notes || `Ovozli buyruq orqali: "${effectiveTranscript}"`,
           },
           warning,
         });
@@ -232,14 +242,10 @@ export class VoiceOrchestratorService {
     }
 
     if (resolvedItems.length === 0) {
-      return {
-        transcript: rawTranscript,
-        intent: command.intent,
-        date: command.date,
-        requiresConfirmation: false,
+      return buildResult({
         needsClarification: true,
         clarificationMessage: "Buyruqdan hech qanday ishchi yoki hajm ma'lumotlari aniqlanmadi.",
-      };
+      });
     }
 
     // Generate idempotency confirmation token (10 minutes TTL)
@@ -249,12 +255,17 @@ export class VoiceOrchestratorService {
     const pendingLogData = {
       id: `val-${Date.now()}`,
       ownerId,
-      transcript: rawTranscript,
+      transcript: effectiveTranscript,
       intent: command.intent,
       status: 'PENDING_CONFIRMATION',
       payload: {
         command,
         items: resolvedItems,
+        originalTranscript: rawTranscript,
+        cleanedTranscript: effectiveTranscript,
+        wasCleaned: correction.wasCleaned,
+        cleanReason: correction.cleanReason,
+        cleaningMethod: correction.method,
       },
       confirmationToken,
       expiresAt,
@@ -265,14 +276,11 @@ export class VoiceOrchestratorService {
 
     await this.saveAuditLog(pendingLogData);
 
-    return {
-      transcript: rawTranscript,
-      intent: command.intent,
-      date: command.date,
+    return buildResult({
       requiresConfirmation: true,
       confirmationToken,
       items: resolvedItems,
-    };
+    });
   }
 
   /**

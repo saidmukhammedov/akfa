@@ -7,6 +7,8 @@ import { Badge } from '../ui/Badge';
 import { apiClient } from '../../api/client';
 import {
   VoiceProcessResult,
+  cleanTranscript,
+  StreamingTranscriptAccumulator,
 } from '@akfa/shared';
 import {
   Mic,
@@ -20,6 +22,7 @@ import {
   Send,
   RefreshCw,
   Loader2,
+  Edit3,
 } from 'lucide-react';
 
 interface VoiceCommandModalProps {
@@ -36,16 +39,6 @@ const getSpeechRecognitionClass = (): (new () => any) | null => {
   return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
 };
 
-// Clean up accidental consecutive duplicate words or phrases from mobile speech engines
-const cleanDuplicatePhrases = (text: string): string => {
-  if (!text) return '';
-  // Collapse identical consecutive words: "ali ali" -> "ali"
-  let cleaned = text.replace(/\b([a-zA-Z0-9\u0400-\u04FF']+)(?:\s+\1\b)+/gi, '$1');
-  // Collapse identical consecutive two-word phrases: "ali bugun ali bugun" -> "ali bugun"
-  cleaned = cleaned.replace(/\b([a-zA-Z0-9\u0400-\u04FF']+\s+[a-zA-Z0-9\u0400-\u04FF']+)(?:\s+\1\b)+/gi, '$1');
-  return cleaned.trim();
-};
-
 export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, onClose }) => {
   const { t, formatCurrency, formatDate } = useLanguage();
   const { refreshData } = useAppState();
@@ -59,12 +52,16 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
   const [manualText, setManualText] = useState('');
   const [activeTabMode, setActiveTabMode] = useState<'VOICE' | 'TEXT'>('VOICE');
   const [liveTranscript, setLiveTranscript] = useState('');
+  const [isEditingTranscript, setIsEditingTranscript] = useState(false);
+  const [editedTranscript, setEditedTranscript] = useState('');
+  const [showOriginal, setShowOriginal] = useState(false);
 
   // Refs – no stale closure problems
   const liveTranscriptRef = useRef('');
   const speechRecognitionRef = useRef<any | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isFinalizedRef = useRef(false); // prevent double-submit
+  const accumulatorRef = useRef<StreamingTranscriptAccumulator>(new StreamingTranscriptAccumulator());
 
   const speechSupported = !!getSpeechRecognitionClass();
 
@@ -93,20 +90,26 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
       setLiveTranscript('');
       liveTranscriptRef.current = '';
       isFinalizedRef.current = false;
+      setIsEditingTranscript(false);
+      setEditedTranscript('');
+      setShowOriginal(false);
+      accumulatorRef.current.reset();
     } else {
       cleanupRecording();
     }
   }, [isOpen, cleanupRecording]);
 
   // ─── Process recognized text via backend parseText ─────────────────────────
-  const processRecognizedText = useCallback(async (text: string) => {
+  const processRecognizedText = useCallback(async (text: string, original?: string) => {
     if (isFinalizedRef.current) return;
     isFinalizedRef.current = true;
     setStep('PROCESSING');
+    setIsEditingTranscript(false);
     try {
-      const res = await apiClient.voice.parseText(text.trim());
+      const res = await apiClient.voice.parseText(text.trim(), undefined, original || text.trim());
       const result = res.data;
       setProcessResult(result);
+      setEditedTranscript(result.cleanedTranscript || result.transcript);
       if (result.needsClarification) {
         setStep('CLARIFICATION');
       } else if (result.requiresConfirmation) {
@@ -140,6 +143,7 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
     liveTranscriptRef.current = '';
     isFinalizedRef.current = false;
     setRecordingSeconds(0);
+    accumulatorRef.current.reset();
 
     const recognition = new SpeechRecClass();
     recognition.lang = 'uz-UZ';
@@ -148,30 +152,10 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
     recognition.maxAlternatives = 1;
     speechRecognitionRef.current = recognition;
 
-    // Real-time transcript display
-    // Reconstruct full text from event.results fresh on each event — NO external accumulator.
-    // This completely eliminates the Android/WebKit exponential duplication bug.
+    // Real-time transcript display using StreamingTranscriptAccumulator
+    // Completely eliminates Android WebKit duplicate interim append and boundary loop bugs
     recognition.onresult = (event: any) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
-
-      for (let i = 0; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result && result[0]) {
-          const part = (result[0].transcript || '').trim();
-          if (part) {
-            if (result.isFinal) {
-              finalTranscript += (finalTranscript ? ' ' : '') + part;
-            } else {
-              interimTranscript += (interimTranscript ? ' ' : '') + part;
-            }
-          }
-        }
-      }
-
-      let fullText = (finalTranscript + (interimTranscript ? ' ' + interimTranscript : '')).trim();
-      fullText = cleanDuplicatePhrases(fullText);
-
+      const fullText = accumulatorRef.current.handleSpeechEvent(event);
       if (fullText) {
         setLiveTranscript(fullText);
         liveTranscriptRef.current = fullText;
@@ -199,9 +183,10 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
       setIsRecording(false);
       speechRecognitionRef.current = null;
 
-      const finalText = cleanDuplicatePhrases(liveTranscriptRef.current.trim());
-      if (finalText) {
-        processRecognizedText(finalText);
+      const rawText = liveTranscriptRef.current.trim();
+      if (rawText) {
+        const cleaned = cleanTranscript(rawText).cleaned;
+        processRecognizedText(cleaned, rawText);
       } else {
         if (!isFinalizedRef.current) {
           setErrorMessage(
@@ -448,15 +433,107 @@ export const VoiceCommandModal: React.FC<VoiceCommandModalProps> = ({ isOpen, on
         {/* ── STEP 3: CONFIRMATION ── */}
         {step === 'CONFIRMATION' && processResult && (
           <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 space-y-1">
-              <span className="text-[11px] font-black uppercase tracking-wider text-akfa-800 dark:text-blue-300 flex items-center gap-1.5">
-                <Volume2 className="w-3.5 h-3.5 text-akfa-600 dark:text-blue-400" />
-                {t.voice?.transcriptLabel || 'Eshitilgan buyruq matni:'}
-              </span>
-              <p className="text-xs sm:text-sm font-black text-slate-900 dark:text-white italic">
-                "{processResult.transcript}"
-              </p>
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 pt-1">
+            <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-black uppercase tracking-wider text-akfa-800 dark:text-blue-300 flex items-center gap-1.5">
+                  <Volume2 className="w-3.5 h-3.5 text-akfa-600 dark:text-blue-400" />
+                  {t.voice?.transcriptLabel || 'Eshitilgan buyruq matni:'}
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  {processResult.wasCleaned && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-700/60 shadow-sm">
+                      <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      Aqlli tozalash
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingTranscript((prev) => !prev);
+                      setEditedTranscript(processResult.cleanedTranscript || processResult.transcript);
+                    }}
+                    className="p-1.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-800 transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                    title="Matnni tahrirlash"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-akfa-600 dark:text-blue-400" />
+                  </button>
+                </div>
+              </div>
+
+              {isEditingTranscript ? (
+                <div className="space-y-2 pt-1 animate-in fade-in duration-150">
+                  <textarea
+                    rows={2}
+                    value={editedTranscript}
+                    onChange={(e) => setEditedTranscript(e.target.value)}
+                    className="w-full p-2.5 text-xs font-semibold bg-white dark:bg-slate-800 border border-akfa-300 dark:border-blue-500 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-akfa-500"
+                    placeholder="Buyruq matnini to'g'rilang..."
+                  />
+                  <div className="flex justify-end gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditedTranscript(processResult.cleanedTranscript || processResult.transcript);
+                        setIsEditingTranscript(false);
+                      }}
+                      className="px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700 rounded-lg cursor-pointer"
+                    >
+                      Bekor qilish
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        isFinalizedRef.current = false;
+                        processRecognizedText(editedTranscript.trim(), processResult.originalTranscript);
+                      }}
+                      disabled={!editedTranscript.trim() || editedTranscript.trim() === (processResult.cleanedTranscript || processResult.transcript)}
+                      className="px-3 py-1 text-[11px] font-bold bg-akfa-600 hover:bg-akfa-700 text-white rounded-lg cursor-pointer shadow-sm disabled:opacity-50"
+                    >
+                      Qayta tahlil qilish
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {showOriginal ? (
+                    <div className="space-y-1">
+                      <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 italic bg-amber-50/70 dark:bg-amber-950/40 p-2 rounded-xl border border-amber-200/60">
+                        "{processResult.originalTranscript || processResult.transcript}"
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowOriginal(false)}
+                        className="text-[10px] font-bold text-akfa-600 dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        ← Tozalangan matnni ko'rish
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <p className="text-xs sm:text-sm font-black text-slate-900 dark:text-white italic">
+                        "{processResult.cleanedTranscript || processResult.transcript}"
+                      </p>
+                      {processResult.wasCleaned && processResult.originalTranscript && (
+                        <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-0.5">
+                          <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                            ✓ Takrorlangan so'zlar va diktovka xatolari tozalandi
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowOriginal(true)}
+                            className="text-akfa-600 dark:text-blue-400 hover:underline font-bold cursor-pointer"
+                          >
+                            Asl matnni ko'rish
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 pt-1 border-t border-blue-100/60 dark:border-blue-900/40">
                 <span>Amal: <strong className="text-akfa-700 dark:text-blue-400 uppercase">{t.voice?.intents?.[processResult.intent] || processResult.intent}</strong></span>
                 <span>Sana: {formatDate(processResult.date)}</span>
               </div>

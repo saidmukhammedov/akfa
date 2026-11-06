@@ -380,10 +380,10 @@ export const api = {
         body: JSON.stringify({ audioBase64, mimeType, clientTranscript }),
       }),
 
-    parseText: async (text: string, date?: string) =>
+    parseText: async (text: string, date?: string, originalTranscript?: string) =>
       request<{ success: boolean; data: VoiceProcessResult }>('/voice/parse-text', {
         method: 'POST',
-        body: JSON.stringify({ text, date }),
+        body: JSON.stringify({ text, date, originalTranscript }),
       }),
 
     confirm: async (confirmationToken: string, decision: 'CONFIRM' | 'REJECT' = 'CONFIRM') =>

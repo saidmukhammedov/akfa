@@ -54,7 +54,7 @@ export async function processAudio(req: Request, res: Response) {
 }
 
 export async function parseTextCommand(req: Request, res: Response) {
-  const { text, date } = req.body;
+  const { text, date, originalTranscript } = req.body;
   const ownerId = (req as any).owner?.id || (req as any).user?.id || 'owner-default-1';
 
   if (!text || typeof text !== 'string') {
@@ -65,7 +65,7 @@ export async function parseTextCommand(req: Request, res: Response) {
   }
 
   try {
-    const result = await voiceOrchestratorService.processTextCommand(text, ownerId, date);
+    const result = await voiceOrchestratorService.processTextCommand(text, ownerId, date, originalTranscript);
     return res.json({
       success: true,
       data: result,

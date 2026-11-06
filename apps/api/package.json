@@ -13,7 +13,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:push": "prisma db push",
-    "test": "node test/phase2-integration.test.js && node test/volume-module.test.js && node test/voice-module.test.js",
+    "test": "node test/phase2-integration.test.js && node test/volume-module.test.js && node test/voice-module.test.js && node test/transcription-cleaning-regression.test.js",
     "test:voice": "node test/voice-module.test.js",
     "test:endpoints": "node test-endpoints.js"
   },
